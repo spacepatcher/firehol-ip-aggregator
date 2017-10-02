@@ -5,8 +5,12 @@ import itertools
 import re
 import netaddr
 
-
+added_ip_re = re.compile(r"(?<=\+)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?=\n)")
+added_net_re = re.compile(r"(?<=\+)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/\d{1,2})(?=\n)")
+ip_re = re.compile(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}")
 net_re = re.compile(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/\d{1,2}")
+not_periodic_feed_re = re.compile(r"^(?!.*_\d{1,3}d(\.ipset|\.netset)).*(\.ipset|\.netset)$")
+uniq_ips_re = re.compile(r"(?<=\ )(\d*)(?= unique IPs)")
 
 
 def zip_uneven(A, B):

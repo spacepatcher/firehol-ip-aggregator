@@ -1,5 +1,6 @@
-from modules.firehol.firehol_feed import db_search
 import hug
+
+from modules.db_firehol import db_search
 
 
 @hug.post("/search")

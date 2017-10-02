@@ -1,27 +1,18 @@
-import sys
-import git
 import os
+import sys
 import traceback
+
+import git
 import unidiff
-import re
-from modules.utils import load_cfg, read_file, limit_memory, normalize_ip4, net_is_local, remove_duplicate_dicts
-from sqlalchemy import exists
-from db_core import create_db, FeedTotal
-from modules.firehol.db import add_column, get_columns, modify_field, add_record, search_net
+
+from modules.general import read_file, limit_memory, normalize_ip4, load_cfg
+from modules.general import added_ip_re, added_net_re, ip_re, net_re, not_periodic_feed_re, uniq_ips_re
+from modules.db_firehol import db_add_data
 
 
-added_ip_re = re.compile(r"(?<=\+)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?=\n)")
-added_net_re = re.compile(r"(?<=\+)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/\d{1,2})(?=\n)")
-ip_re = re.compile(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}")
-net_re = re.compile(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/\d{1,2}")
-not_periodic_feed_re = re.compile(r"^(?!.*_\d{1,3}d(\.ipset|\.netset)).*(\.ipset|\.netset)$")
-uniq_ips_re = re.compile(r"(?<=\ )(\d*)(?= unique IPs)")
-
-# config = load_cfg(os.path.join(os.path.dirname(__file__), "conf/config.json"))
-current_dir = os.path.dirname(os.path.abspath(__file__))
-repo_path = "%s/%s" % (current_dir, "data/firehol")
-firehol_ipsets_git = "https://github.com/firehol/blocklist-ipsets.git"
-unique_ips_limit = 2000000
+repo_path = "%s/%s" % (os.path.dirname(os.path.abspath(__file__)), "git_data/firehol")
+firehol_ipsets_git = load_cfg("conf/config.json").get("firehol_ipsets_git")
+unique_ips_limit = load_cfg("conf/config.json").get("unique_ips_limit")
 
 
 def sync_git_repo():
@@ -40,18 +31,17 @@ def sync_git_repo():
             if diff:
                 diff_list.append(diff)
         sync_database_added(diff_list=diff_list)
-        return
     else:
         try:
             firehol_repo = git.cmd.Git(working_dir=repo_path)
             firehol_repo.checkout("master")
         except git.GitCommandError as e:
+            traceback.print_exc()
             return "git error {}".format(e)
         try:
             firehol_repo.fetch("origin")
-            diff_stdout_raw = firehol_repo.execute(command=["git", "diff", "master", "origin/master"],
-                                                   stdout_as_string=True)
-            diff_stdout = diff_stdout_raw.split("\n")
+            diff_stdout = firehol_repo.execute(command=["git", "diff", "master", "origin/master"],
+                                               stdout_as_string=True).split("\n")
             try:
                 parsed_diff = unidiff.PatchSet(diff_stdout)
             except unidiff.UnidiffParseError as e:
@@ -63,20 +53,19 @@ def sync_git_repo():
                 for added_file in parsed_diff.added_files:
                     filename_abs = "%s/%s" % (repo_path, added_file.target_file[2:])
                     if validate_feed(feed_file_abs=filename_abs, unique_ips_limit=unique_ips_limit):
-                        diff = parse_feed_file(feed_file=filename_abs)
-                        if diff:
-                            diff_list.append(diff)
+                        new_data = parse_feed_file(feed_file=filename_abs)
+                        if new_data:
+                            diff_list.append(new_data)
                 sync_database_added(diff_list=diff_list)
             if parsed_diff.modified_files:
                 diff_list = []
                 for change_in_file in parsed_diff.modified_files:
                     filename_abs = "%s/%s" % (repo_path, change_in_file.target_file[2:])
                     if validate_feed(feed_file_abs=filename_abs, unique_ips_limit=unique_ips_limit):
-                        diff = get_diff_data(dif_data=change_in_file, filename_abs=filename_abs)
-                        if diff:
-                            diff_list.append(diff)
+                        added_data = get_diff_data(dif_data=change_in_file, filename_abs=filename_abs)
+                        if added_data:
+                            diff_list.append(added_data)
                 sync_database_added(diff_list=diff_list)
-            return
         except git.GitCommandError as e:
             return "git error {}".format(e)
 
@@ -139,65 +128,6 @@ def sync_database_added(diff_list):
             }
             data_to_add.append(diff_parsed)
     db_add_data(data=data_to_add)
-    return
-
-
-def db_add_data(data):
-    try:
-        db_session = create_db()
-    except Exception as e:
-        traceback.print_exc()
-        return "Error while db init {}".format(e)
-    try:
-        for diff_parsed in data:
-            for ip in diff_parsed.get("ips"):
-                valid_column_name = diff_parsed.get("feed_name").split(".")[0]
-                if db_session.query((exists().where(FeedTotal.ip == ip))).scalar():
-                    if valid_column_name in get_columns(db_session, FeedTotal.__tablename__):
-                        pass
-                    else:
-                        add_column(db_session, FeedTotal.__tablename__, valid_column_name)
-                    modify_field(db_session, FeedTotal.__tablename__, ip, valid_column_name)
-                else:
-                    if valid_column_name in get_columns(db_session, FeedTotal.__tablename__):
-                        pass
-                    else:
-                        add_column(db_session, FeedTotal.__tablename__, valid_column_name)
-                    add_record(db_session, FeedTotal.__tablename__, ip, valid_column_name)
-                db_session.commit()
-        return "Successfully"
-    except Exception as e:
-        traceback.print_exc()
-        print("Error: {}".format(e))
-        db_session.rollback()
-        raise Exception("Can't commit to DB. Rolling back changes..")
-    finally:
-        db_session.close()
-        return
-
-
-def db_search(net_input):
-    search_result_total = []
-    search_result_unique = []
-    net_input = list(set(net_input))
-    try:
-        db_session = create_db()
-    except Exception as e:
-        traceback.print_exc()
-        return "Error while db init {}".format(e)
-    try:
-        for net in net_input:
-            if not net_is_local(net):
-                search_net_result = search_net(db_session, FeedTotal.__tablename__, net)
-                if search_net_result:
-                    search_result_total.extend(search_net_result)
-        search_result_unique = remove_duplicate_dicts(search_result_total)
-    except Exception as e:
-        traceback.print_exc()
-        return "Error: {}".format(e)
-    finally:
-        db_session.close()
-        return search_result_unique
 
 
 def get_proper_feed_files(path_to_search):

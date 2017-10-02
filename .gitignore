@@ -154,9 +154,10 @@ venv_3.5
 
 
 ### Custom
-data/*
+git_data/firehol/*
 conf/*
 log/*
+client.py
 
 
 # Docker persistence data
