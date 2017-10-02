@@ -4,7 +4,7 @@ from sqlalchemy.sql import func
 from sqlalchemy import exists
 
 from modules.db_core import create_db, FeedTotal
-from modules.general import net_is_local, remove_duplicate_dicts
+from modules.general import net_is_local, remove_duplicate_dicts, grouper
 
 
 def add_column(engine, table_name, column):
@@ -58,21 +58,17 @@ def db_add_data(data):
         traceback.print_exc()
         return "Error while db init {}".format(e)
     try:
-        for diff_parsed in data:
-            for ip in diff_parsed.get("ips"):
-                valid_column_name = diff_parsed.get("feed_name").split(".")[0]
-                if db_session.query((exists().where(FeedTotal.ip == ip))).scalar():
-                    if valid_column_name in get_columns(db_session, FeedTotal.__tablename__):
-                        pass
+        for data_to_add in data:
+            valid_column_name = data_to_add.get("feed_name").split(".")[0]
+            if valid_column_name not in get_columns(db_session, FeedTotal.__tablename__):
+                add_column(db_session, FeedTotal.__tablename__, valid_column_name)
+                db_session.commit()
+            for ip_group in grouper(n=100000, iterable=data_to_add.get("ips")):
+                for ip in ip_group:
+                    if db_session.query((exists().where(FeedTotal.ip == ip))).scalar():
+                        modify_field(db_session, FeedTotal.__tablename__, ip, valid_column_name)
                     else:
-                        add_column(db_session, FeedTotal.__tablename__, valid_column_name)
-                    modify_field(db_session, FeedTotal.__tablename__, ip, valid_column_name)
-                else:
-                    if valid_column_name in get_columns(db_session, FeedTotal.__tablename__):
-                        pass
-                    else:
-                        add_column(db_session, FeedTotal.__tablename__, valid_column_name)
-                    add_record(db_session, FeedTotal.__tablename__, ip, valid_column_name)
+                        add_record(db_session, FeedTotal.__tablename__, ip, valid_column_name)
                 db_session.commit()
         return "Successfully"
     except Exception as e:

@@ -1,5 +1,6 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects import postgresql
+from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import func
 from sqlalchemy import create_engine
@@ -22,8 +23,7 @@ class FeedTotal(Base):
 
 
 def create_db():
-    engine = create_engine(connection_string, pool_size=800)
-    print(engine.url)
+    engine = create_engine(connection_string, pool_size=10, max_overflow=5)
     if not database_exists(engine.url):
         create_database(engine.url)
     Base.metadata.create_all(engine)
