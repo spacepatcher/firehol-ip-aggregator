@@ -1,6 +1,6 @@
 import traceback
 
-from app.modules.general import net_is_local, remove_duplicate_dicts, grouper
+from app.modules.general import validate_input, remove_duplicate_dicts, grouper
 from sqlalchemy import exists
 from sqlalchemy.sql import func
 
@@ -90,7 +90,7 @@ def db_search(net_input):
         return "Error while db init {}".format(e)
     try:
         for net in net_input:
-            if not net_is_local(net):
+            if validate_input(net):
                 search_net_result = search_net(db_session, FeedTotal.__tablename__, net)
                 if search_net_result:
                     search_result_total.extend(search_net_result)

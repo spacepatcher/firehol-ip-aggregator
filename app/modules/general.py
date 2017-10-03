@@ -4,10 +4,10 @@ import itertools
 import re
 import netaddr
 
-added_ip_re = re.compile(r"(?<=\+)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})(?=\n)")
-added_net_re = re.compile(r"(?<=\+)(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/\d{1,2})(?=\n)")
-ip_re = re.compile(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}")
-net_re = re.compile(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/\d{1,2}")
+added_ip_re = re.compile(r"(?<=\+)(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(?=\n)")
+added_net_re = re.compile(r"(?<=\+)(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(/([0-9]|[1-2][0-9]|3[0-2]))(?=\n)")
+ip_re = re.compile("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$")
+net_re = re.compile("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(/([0-9]|[1-2][0-9]|3[0-2]))$")
 not_periodic_feed_re = re.compile(r"^(?!.*_\d{1,3}d(\.ipset|\.netset)).*(\.ipset|\.netset)$")
 uniq_ips_re = re.compile(r"(?<=\ )(\d*)(?= unique IPs)")
 
@@ -48,9 +48,11 @@ def normalize_net4(net_raw):
         yield str(ip)
 
 
-def net_is_local(net):
-    is_local = netaddr.IPNetwork(net).is_private()
-    return is_local
+def validate_input(input):
+    if net_re.match(input) or ip_re.match(input):
+        net = input
+        if not netaddr.IPNetwork(net).is_private():
+            return True
 
 
 def remove_duplicate_dicts(with_duplicates):
