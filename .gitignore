@@ -154,7 +154,7 @@ venv_3.5
 
 
 ### Custom
-git_data/firehol/*
+git_data/*
 conf/*
 log/*
 client.py

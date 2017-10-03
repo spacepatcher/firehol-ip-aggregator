@@ -51,25 +51,24 @@ def search_net(engine, table_name, net):
     return search_results
 
 
-def db_add_data(data):
+def db_add_data(data_to_add):
     try:
         db_session = create_db()
     except Exception as e:
         traceback.print_exc()
         return "Error while db init {}".format(e)
     try:
-        for data_to_add in data:
-            valid_column_name = data_to_add.get("feed_name").split(".")[0]
-            if valid_column_name not in get_columns(db_session, FeedTotal.__tablename__):
-                add_column(db_session, FeedTotal.__tablename__, valid_column_name)
-                db_session.commit()
-            for ip_group in grouper(n=100000, iterable=data_to_add.get("ips")):
-                for ip in ip_group:
-                    if db_session.query((exists().where(FeedTotal.ip == ip))).scalar():
-                        modify_field(db_session, FeedTotal.__tablename__, ip, valid_column_name)
-                    else:
-                        add_record(db_session, FeedTotal.__tablename__, ip, valid_column_name)
-                db_session.commit()
+        valid_column_name = data_to_add.get("feed_name").split(".")[0]
+        if valid_column_name not in get_columns(db_session, FeedTotal.__tablename__):
+            add_column(db_session, FeedTotal.__tablename__, valid_column_name)
+            db_session.commit()
+        for ip_group in grouper(n=100000, iterable=data_to_add.get("added_ip")):
+            for ip in ip_group:
+                if db_session.query((exists().where(FeedTotal.ip == ip))).scalar():
+                    modify_field(db_session, FeedTotal.__tablename__, ip, valid_column_name)
+                else:
+                    add_record(db_session, FeedTotal.__tablename__, ip, valid_column_name)
+            db_session.commit()
         return "Successfully"
     except Exception as e:
         traceback.print_exc()

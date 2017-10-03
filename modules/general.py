@@ -1,4 +1,3 @@
-from itertools import cycle
 import json
 import resource
 import itertools
@@ -11,17 +10,6 @@ ip_re = re.compile(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}")
 net_re = re.compile(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}/\d{1,2}")
 not_periodic_feed_re = re.compile(r"^(?!.*_\d{1,3}d(\.ipset|\.netset)).*(\.ipset|\.netset)$")
 uniq_ips_re = re.compile(r"(?<=\ )(\d*)(?= unique IPs)")
-
-
-def zip_uneven(A, B):
-    if len(A) == len(B):
-        return zip(A, B)
-    if len(B) > len(A):
-        C = list(B)
-        B = list(A)
-        A = list(C)
-        del C
-    return zip(A, cycle(B)) if len(A) > len(B) else zip(cycle(A), B)
 
 
 def jsonify(data):
@@ -55,16 +43,9 @@ def grouper(n, iterable):
         yield chunk
 
 
-def normalize_ip4(ip_list_raw):
-    ip_norm_list = []
-    for ip_raw in ip_list_raw:
-        net_match = net_re.search(ip_raw)
-        if net_match:
-            for ip in netaddr.IPNetwork(ip_raw).iter_hosts():
-                ip_norm_list.append(str(ip))
-        else:
-            ip_norm_list.append(str(netaddr.IPAddress(ip_raw)))
-    return ip_norm_list
+def normalize_net4(net_raw):
+    for ip in netaddr.IPNetwork(net_raw).iter_hosts():
+        yield str(ip)
 
 
 def net_is_local(net):
