@@ -154,10 +154,9 @@ venv_3.5
 
 
 ### Custom
-app/git_data/
-app/conf/*
-app/log/*
-client.py
+docker-persistance/app/git_data/
+docker-persistance/app/conf/*
+docker-persistance/app/log/*
 
 
 # Docker persistence data

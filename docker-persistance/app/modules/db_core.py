@@ -1,5 +1,6 @@
 import os
 
+from modules.general import load_cfg
 from sqlalchemy import Column, Integer, DateTime
 from sqlalchemy import create_engine
 from sqlalchemy.dialects import postgresql
@@ -7,8 +8,6 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import func
 from sqlalchemy_utils import database_exists, create_database
-
-from app.modules.general import load_cfg
 
 connection_string = load_cfg("%s/%s" % (os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "conf/config.json")).get("pg_connection_string")
 database_name = load_cfg("%s/%s" % (os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "conf/config.json")).get("feed")

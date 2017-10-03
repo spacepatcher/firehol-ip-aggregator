@@ -1,13 +1,12 @@
 import os
-import sys
 import traceback
+import time
 
 import git
 import unidiff
-from app.modules.db_firehol import db_add_data
-
-from app.modules.general import added_ip_re, added_net_re, ip_re, net_re, not_periodic_feed_re, uniq_ips_re
-from app.modules.general import read_file, limit_memory, normalize_net4, load_cfg
+from modules.db_firehol import db_add_data
+from modules.general import added_ip_re, added_net_re, ip_re, net_re, not_periodic_feed_re, uniq_ips_re
+from modules.general import read_file, limit_memory, normalize_net4, load_cfg
 
 repo_path = "%s/%s" % (os.path.dirname(os.path.abspath(__file__)), "git_data/firehol")
 firehol_ipsets_git = load_cfg("%s/%s" % (os.path.dirname(os.path.abspath(__file__)), "conf/config.json")).get("firehol_ipsets_git")
@@ -136,5 +135,6 @@ def validate_feed(feed_file_abs, unique_ips_limit):
 
 if __name__ == "__main__":
     limit_memory(maxsize_g=12)
-    sync_git_repo()
-    sys.exit()
+    while True:
+        sync_git_repo()
+        time.sleep(60 * 60 * 12)

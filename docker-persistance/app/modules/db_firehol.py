@@ -1,10 +1,9 @@
 import traceback
 
-from app.modules.general import validate_input, remove_duplicate_dicts, grouper
+from modules.db_core import create_db, FeedTotal
+from modules.general import validate_input, remove_duplicate_dicts, grouper
 from sqlalchemy import exists
 from sqlalchemy.sql import func
-
-from app.modules.db_core import create_db, FeedTotal
 
 
 def add_column(engine, table_name, column):
