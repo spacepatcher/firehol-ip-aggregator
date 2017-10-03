@@ -4,15 +4,14 @@ import traceback
 
 import git
 import unidiff
+from app.modules.db_firehol import db_add_data
 
-from modules.general import read_file, limit_memory, normalize_net4, load_cfg
-from modules.general import added_ip_re, added_net_re, ip_re, net_re, not_periodic_feed_re, uniq_ips_re
-from modules.db_firehol import db_add_data
-
+from app.modules.general import added_ip_re, added_net_re, ip_re, net_re, not_periodic_feed_re, uniq_ips_re
+from app.modules.general import read_file, limit_memory, normalize_net4, load_cfg
 
 repo_path = "%s/%s" % (os.path.dirname(os.path.abspath(__file__)), "git_data/firehol")
-firehol_ipsets_git = load_cfg("conf/config.json").get("firehol_ipsets_git")
-unique_ips_limit = load_cfg("conf/config.json").get("unique_ips_limit")
+firehol_ipsets_git = load_cfg("%s/%s" % (os.path.dirname(os.path.abspath(__file__)), "conf/config.json")).get("firehol_ipsets_git")
+unique_ips_limit = load_cfg("%s/%s" % (os.path.dirname(os.path.abspath(__file__)), "conf/config.json")).get("unique_ips_limit")
 
 
 def sync_git_repo():
@@ -55,8 +54,6 @@ def sync_git_repo():
                             db_add_data(new_data)
             if parsed_diff.modified_files:
                 for change_in_file in parsed_diff.modified_files:
-                    print(change_in_file)
-                    print(type(change_in_file))
                     filename_abs = "%s/%s" % (repo_path, change_in_file.target_file[2:])
                     if validate_feed(feed_file_abs=filename_abs, unique_ips_limit=unique_ips_limit):
                         diff_data = get_diff_data(diff_data=change_in_file, filename_abs=filename_abs)

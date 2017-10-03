@@ -154,13 +154,15 @@ venv_3.5
 
 
 ### Custom
-git_data/*
-conf/*
-log/*
+app/git_data/
+app/conf/*
+app/log/*
 client.py
 
 
 # Docker persistence data
+docker-persistance/git_data/*
+docker-persistance/postgres/*
 
 
 # For empty folders
