@@ -141,8 +141,8 @@ app/log/*
 
 
 # Docker persistence data
-docker-persistance/app-data/*
-docker-persistance/postgres/*
+docker-persistence/app-data/*
+docker-persistence/postgres/*
 
 
 # For empty folders

@@ -8,7 +8,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=8neEmdvl
     volumes:
-      - ./docker-persistance/postgres:/var/lib/postgresql/data
+      - ./docker-persistence/postgres:/var/lib/postgresql/data
 
   firehol-ip-aggregator:
     image: python:3.6.2-alpine3.6
@@ -17,7 +17,7 @@ services:
       - 8000:8000
     volumes:
       - ./app:/app
-      - ./docker-persistance/app-data/git_data:/app/git_data
+      - ./docker-persistence/app-data/git_data:/app/git_data
     entrypoint: /app/entrypoint.sh hug -f modules/api.py
     depends_on:
       - postgres
