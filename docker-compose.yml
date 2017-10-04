@@ -9,8 +9,6 @@ services:
       - POSTGRES_PASSWORD=8neEmdvl
     volumes:
       - ./docker-persistance/postgres:/var/lib/postgresql/data
-    networks:
-      - thehivecompose_default
 
   firehol-ip-aggregator:
     image: python:3.6.2-alpine3.6
@@ -18,14 +16,8 @@ services:
     ports:
       - 8000:8000
     volumes:
-      - ./docker-persistance/app:/app
-    networks:
-      - thehivecompose_default
+      - ./app:/app
+      - ./docker-persistance/app-data/git_data:/app/git_data
     entrypoint: /app/entrypoint.sh hug -f modules/api.py
     depends_on:
       - postgres
-
-networks:
-  thehivecompose_default:
-    external:
-      name: thehivecompose_default
