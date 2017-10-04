@@ -11,6 +11,6 @@ def search_api(body):
         if validate_input_item(item):
             pass
         else:
-            return "Wrong input"
+            return "Data validation error in '%s'." % item
     net_list = list(set(input_list))
     return db_search(net_list)
