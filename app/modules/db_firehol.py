@@ -20,14 +20,14 @@ def get_columns(engine, table_name):
 
 
 def modify_field(engine, table_name, ip, column):
-    sql = ("UPDATE {table_name} SET {column} = TRUE, last_seen = {last_seen} WHERE ip = '{ip}' AND {column} = FALSE")\
-        .format(table_name=table_name, last_seen=func.now(), ip=ip, column=column)
+    sql = ("UPDATE {table_name} SET {column} = TRUE, last_added = {last_added} WHERE ip = '{ip}' AND {column} = FALSE")\
+        .format(table_name=table_name, last_added=func.now(), ip=ip, column=column)
     engine.execute(sql)
 
 
 def add_record(engine, table_name, ip, column):
-    sql = ("INSERT INTO {table_name} (ip, last_seen, {column}) VALUES ('{ip}', {last_seen}, TRUE)")\
-        .format(table_name=table_name, column=column, ip=ip, last_seen=func.now())
+    sql = ("INSERT INTO {table_name} (ip, last_added, {column}) VALUES ('{ip}', {last_added}, TRUE)")\
+        .format(table_name=table_name, column=column, ip=ip, last_added=func.now())
     engine.execute(sql)
 
 
@@ -39,11 +39,11 @@ def search_net(engine, table_name, net):
     for row in result:
         feed_name = []
         for key in row.keys():
-            if row[key] and key != "id" and key != "ip" and key != "last_seen":
+            if row[key] and key != "id" and key != "ip" and key != "last_added":
                 feed_name.append(key)
         data = {
             "ip": row["ip"],
-            "last_seen": row["last_seen"],
+            "last_added": row["last_added"],
             "feeds": feed_name
         }
         search_results.append(data)

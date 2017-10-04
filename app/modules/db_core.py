@@ -18,7 +18,7 @@ class FeedTotal(Base):
     __tablename__ = "feed_total"
     id = Column(Integer, primary_key=True)
     ip = Column(postgresql.INET, index=True)
-    last_seen = Column(DateTime(timezone=True), server_default=func.now())
+    last_added = Column(DateTime(timezone=True), server_default=func.now())
 
 
 def create_db():
