@@ -48,24 +48,8 @@ def normalize_net4(net_raw):
         yield str(ip)
 
 
-def validate_input(input):
+def validate_input_item(input):
     if net_re.match(input) or ip_re.match(input):
         net = input
         if not netaddr.IPNetwork(net).is_private():
             return True
-
-
-def remove_duplicate_dicts(with_duplicates):
-    unique_ip = []
-    unique_dicts = []
-    for data_dict in with_duplicates:
-        if len(unique_ip) > 0:
-            if data_dict.get("ip") in unique_ip:
-                pass
-            else:
-                unique_dicts.append(data_dict)
-                unique_ip.append(data_dict.get("ip"))
-        else:
-            unique_dicts.append(data_dict)
-            unique_ip.append(data_dict.get("ip"))
-    return unique_dicts

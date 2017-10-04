@@ -1,7 +1,7 @@
 import traceback
 
 from modules.db_core import create_db, FeedTotal
-from modules.general import validate_input, remove_duplicate_dicts, grouper
+from modules.general import grouper
 from sqlalchemy import exists
 from sqlalchemy.sql import func
 
@@ -78,25 +78,21 @@ def db_add_data(data_to_add):
         db_session.close()
 
 
-def db_search(net_input):
+def db_search(net_list):
     search_result_total = []
-    search_result_unique = []
-    net_input = list(set(net_input))
     try:
         db_session = create_db()
     except Exception as e:
         traceback.print_exc()
         return "Error while db init {}".format(e)
     try:
-        for net in net_input:
-            if validate_input(net):
-                search_net_result = search_net(db_session, FeedTotal.__tablename__, net)
-                if search_net_result:
-                    search_result_total.extend(search_net_result)
-        search_result_unique = remove_duplicate_dicts(search_result_total)
+        for net in net_list:
+            search_net_result = search_net(db_session, FeedTotal.__tablename__, net)
+            if search_net_result:
+                search_result_total.extend(search_net_result)
     except Exception as e:
         traceback.print_exc()
         return "Error: {}".format(e)
     finally:
         db_session.close()
-        return search_result_unique
+        return search_result_total
