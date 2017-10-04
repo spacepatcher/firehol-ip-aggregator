@@ -1,5 +1,4 @@
 {
-  "pg_connection_string": "postgresql://postgres:8neEmdvl@postgres:5432/feed",
   "pg_database_user": "postgres",
   "pg_database_password": "8neEmdvl",
   "pg_server_address": "postgres",
