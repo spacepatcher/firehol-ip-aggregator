@@ -21,7 +21,7 @@ def read_file(filename):
     return lines
 
 
-def validate_input(input):
+def validate_input_item(input):
     if NETWORK_re.match(input) or IP_re.match(input):
         return True
 
@@ -42,12 +42,9 @@ def request_api(url, payload):
         sys.exit(1)
 
 
-def pg_search_net(net_list):
-    net_string = ",".join(net_list)
+def pg_search(items_list):
     url = PG_SERVER + "/search"
-    payload = net_string
-    results_total = request_api(url, payload)
-    return results_total
+    return request_api(url, ",".join(items_list))
 
 
 def output_to_file(file_name, output_total):
@@ -61,34 +58,34 @@ def output_to_stdout(output_total):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,
-                                     description='''
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter, description='''
 
 Postgres IP Feed API server: %s''' % (PG_SERVER))
 
-    parser.add_argument("-s", "--single", help="Search a single IP or network in IPv4 CIDR format.")
+    parser.add_argument("-a", "--argument", help="Search IP or network in IPv4 CIDR format (enter multiple items separated by commas).")
     parser.add_argument("-f", "--file", help="Search IPs or networks in IPv4 CIDR format from file (one per line).")
     parser.add_argument("-o", "--output", help="Dump results to JSON file (default output to stdout).", default=False)
     args = parser.parse_args()
 
-    pg_results = {}
-    if args.single:
-        if validate_input(args.single):
-            pg_results = pg_search_net([args.single])
-        else:
-            print("Data validation error in '%s'." % (args.single))
-            sys.exit(1)
+    if args.argument:
+        for item in args.argument.split(","):
+            if validate_input_item(item):
+                pass
+            else:
+                print("Data validation error in '%s'." % item)
+                sys.exit(1)
+        pg_results = pg_search(args.argument.split(","))
     elif args.file:
         net_lines = read_file(args.file)
         line_number = 0
-        for line in net_lines:
+        for net_item in net_lines:
             line_number += 1
-            if validate_input(line):
+            if validate_input_item(net_item):
                 pass
             else:
-                print("Data validation error at line number %s in '%s'." % (line_number, line))
+                print("Data validation error at line number %s in '%s'." % (line_number, net_item))
                 sys.exit(1)
-        pg_results = pg_search_net(net_lines)
+        pg_results = pg_search(net_lines)
     else:
         print("You must choose the input data format. Exiting...")
         sys.exit(1)
