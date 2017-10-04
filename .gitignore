@@ -136,7 +136,6 @@ venv_3.5
 
 ### Custom
 app/git_data/
-app/conf/*
 app/log/*
 
 

@@ -9,8 +9,12 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import func
 from sqlalchemy_utils import database_exists, create_database
 
-connection_string = load_cfg("%s/%s" % (os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "conf/config.json")).get("pg_connection_string")
-database_name = load_cfg("%s/%s" % (os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "conf/config.json")).get("feed")
+database_user = load_cfg("%s/%s" % (os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "conf/config.json")).get("pg_database_user")
+database_password = load_cfg("%s/%s" % (os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "conf/config.json")).get("pg_database_password")
+server_address = load_cfg("%s/%s" % (os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "conf/config.json")).get("pg_server_address")
+database_name = load_cfg("%s/%s" % (os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "conf/config.json")).get("pg_database_name")
+connection_string = "postgresql://%s:%s@%s:5432/%s" % (database_user, database_password, server_address, database_name)
+
 Base = declarative_base()
 
 
