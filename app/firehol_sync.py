@@ -1,6 +1,7 @@
 import os
 import traceback
 import time
+import logging
 
 import git
 import unidiff
@@ -11,10 +12,16 @@ from modules.general import read_file, limit_memory, normalize_net4, load_cfg
 repo_path = "%s/%s" % (os.path.dirname(os.path.abspath(__file__)), "git_data/firehol")
 firehol_ipsets_git = load_cfg("%s/%s" % (os.path.dirname(os.path.abspath(__file__)), "conf/config.json")).get("firehol_ipsets_git")
 unique_ips_limit = load_cfg("%s/%s" % (os.path.dirname(os.path.abspath(__file__)), "conf/config.json")).get("unique_ips_limit")
+log_path = "%s/%s" % (os.path.dirname(os.path.abspath(__file__)), "log/run.log")
+
+logger = logging.getLogger(__name__)
+formatter = logging.basicConfig(filename=log_path, level=logging.INFO, format="%(asctime)s [%(levelname)s]  [%(filename)s] %(funcName)s: %(message)s")
 
 
 def sync_git_repo():
-    if not os.path.exists(repo_path):
+    repo_path_exists = os.path.exists(repo_path)
+    if not repo_path_exists:
+        logger.info("Cloning Firehol repo from remote origin")
         os.makedirs(repo_path)
         git.Repo.clone_from(url=firehol_ipsets_git, to_path=repo_path)
         try:
@@ -25,9 +32,12 @@ def sync_git_repo():
             return "git error {}".format(e)
         for filename_abs in get_proper_feed_files(path_to_search=repo_path):
             new_data = parse_feed_file(feed_file=filename_abs)
-            if new_data:
+            if new_data.get("added_ip"):
                 db_add_data(new_data)
+                logger.info("Added %d new data items from new file %s" % (len(new_data.get("added_ip")), filename_abs))
+        logger.info("Adding data from cloned repo successfully finished")
     else:
+        logger.info("Fetching diff from remote origin")
         try:
             firehol_repo = git.cmd.Git(working_dir=repo_path)
             firehol_repo.checkout("master")
@@ -45,21 +55,28 @@ def sync_git_repo():
             firehol_repo.execute(command=["git", "reset", "--hard", "origin/master"])
             firehol_repo.merge()
             if parsed_diff.added_files:
+                logger.info("Found new feed files")
                 for added_file in parsed_diff.added_files:
                     filename_abs = "%s/%s" % (repo_path, added_file.target_file[2:])
                     if validate_feed(feed_file_abs=filename_abs, unique_ips_limit=unique_ips_limit):
                         new_data = parse_feed_file(feed_file=filename_abs)
-                        if new_data:
+                        if new_data.get("added_ip"):
                             db_add_data(new_data)
+                            logger.info("Added %d new data items from new file %s" % (len(new_data.get("added_ip")), filename_abs))
+                logger.info("Adding data from new feeds successfully finished")
             if parsed_diff.modified_files:
+                logger.info("Found some diffs")
                 for change_in_file in parsed_diff.modified_files:
                     filename_abs = "%s/%s" % (repo_path, change_in_file.target_file[2:])
                     if validate_feed(feed_file_abs=filename_abs, unique_ips_limit=unique_ips_limit):
                         diff_data = get_diff_data(diff_data=change_in_file, filename_abs=filename_abs)
-                        if diff_data:
+                        if diff_data.get("added_ip"):
                             db_add_data(diff_data)
+                            logger.info("Added %d new data items from diff for file %s" % (len(diff_data.get("added_ip")), filename_abs))
+                logger.info("Adding data from diffs successfully finished")
         except git.GitCommandError as e:
             return "git error {}".format(e)
+        logger.info("Adding data successfully finished")
 
 
 def parse_feed_file(feed_file):
@@ -87,17 +104,13 @@ def parse_feed_file(feed_file):
 def get_diff_data(diff_data, filename_abs):
     feed_name = filename_abs.split('/').pop()
     added_ip = []
-    added_net = []
-    added_ip_match = added_ip_re.findall(str(diff_data))
-    added_net_match = added_net_re.findall(str(diff_data))
-    if added_ip_match:
-        added_ip.extend(added_ip_match)
-    if added_net_match:
-        for added_net_item in added_net_match:
-            added_net.extend(normalize_net4(added_net_item))
+    for ip_item in added_ip_re.finditer(str(diff_data)):
+        added_ip.append(ip_item.group())
+    for net_item in added_net_re.finditer(str(diff_data)):
+        added_ip.extend(normalize_net4(net_item.group()))
     diff = {
         "feed_name": feed_name,
-        "added_ip": added_ip + added_net
+        "added_ip": added_ip
     }
     return diff
 
@@ -136,5 +149,7 @@ def validate_feed(feed_file_abs, unique_ips_limit):
 if __name__ == "__main__":
     limit_memory(maxsize_g=12)
     while True:
+        logger.info("Start sync_git_repo()")
         sync_git_repo()
-        time.sleep(60 * 60 * 12)
+        logger.info("Sleep for %d seconds" % (60 * 60 * 1))
+        time.sleep(60 * 60 * 1)
