@@ -81,24 +81,24 @@ def sync_git_repo():
 
 def parse_feed_file(feed_file):
     feed_name = feed_file.split('/').pop()
-    added_ip = []
-    added_net = []
+    new_ip = []
+    new_net = []
     data_strings = read_file(filename=feed_file)
     for data_string in data_strings:
         if "#" in data_string:
             pass
         else:
-            ip_match = ip_re.search(data_string)
-            net_match = net_re.search(data_string)
-            if ip_match:
-                added_ip.append(ip_match.group())
-            if net_match:
-                added_net.extend(normalize_net4(net_match.group()))
-    diff = {
+            if ip_re.search(data_string):
+                new_ip.append(ip_re.search(data_string).group())
+            elif net_re.search(data_string):
+                new_net.extend(normalize_net4(net_re.search(data_string).group()))
+            else:
+                pass
+    new = {
         "feed_name": feed_name,
-        "added_ip": added_ip + added_net
+        "added_ip": new_ip + new_net
     }
-    return diff
+    return new
 
 
 def get_diff_data(diff_data, filename_abs):
