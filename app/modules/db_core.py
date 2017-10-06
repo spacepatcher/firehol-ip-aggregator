@@ -20,13 +20,12 @@ Base = declarative_base()
 
 class FeedTotal(Base):
     __tablename__ = "feed_total"
-    id = Column(Integer, primary_key=True)
-    ip = Column(postgresql.INET, index=True)
+    ip = Column(postgresql.INET, primary_key=True)
     last_added = Column(DateTime(timezone=True), server_default=func.now())
 
 
 def create_db():
-    engine = create_engine(connection_string, pool_size=10, max_overflow=5)
+    engine = create_engine(connection_string, pool_size=100, max_overflow=0)
     if not database_exists(engine.url):
         create_database(engine.url)
     Base.metadata.create_all(engine)
