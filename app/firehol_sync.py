@@ -34,7 +34,7 @@ def sync_git_repo():
             new_data = parse_feed_file(feed_file=filename_abs)
             if new_data.get("added_ip"):
                 db_add_data(new_data)
-                logger.info("Added %d new data items from new file %s" % (len(new_data.get("added_ip")), filename_abs))
+                logger.info("Added %d new data item(s) from new file %s" % (len(new_data.get("added_ip")), filename_abs))
         logger.info("Adding data from cloned repo successfully finished")
     else:
         logger.info("Fetching diff from remote origin")
@@ -62,7 +62,7 @@ def sync_git_repo():
                         new_data = parse_feed_file(feed_file=filename_abs)
                         if new_data.get("added_ip"):
                             db_add_data(new_data)
-                            logger.info("Added %d new data items from new file %s" % (len(new_data.get("added_ip")), filename_abs))
+                            logger.info("Added %d new data item(s) from new file %s" % (len(new_data.get("added_ip")), filename_abs))
                 logger.info("Adding data from new feeds successfully finished")
             if parsed_diff.modified_files:
                 logger.info("Found some diffs")
@@ -72,7 +72,7 @@ def sync_git_repo():
                         diff_data = get_diff_data(diff_data=change_in_file, filename_abs=filename_abs)
                         if diff_data.get("added_ip"):
                             db_add_data(diff_data)
-                            logger.info("Added %d new data items from diff for file %s" % (len(diff_data.get("added_ip")), filename_abs))
+                            logger.info("Added %d new data item(s) from diff for file %s" % (len(diff_data.get("added_ip")), filename_abs))
                 logger.info("Adding data from diffs successfully finished")
         except git.GitCommandError as e:
             return "git error {}".format(e)
@@ -147,9 +147,10 @@ def validate_feed(feed_file_abs, unique_ips_limit):
 
 
 if __name__ == "__main__":
+    period = 60 * 60 * 12
     limit_memory(maxsize_g=12)
     while True:
         logger.info("Start sync_git_repo()")
         sync_git_repo()
-        logger.info("Sleep for %d seconds" % (60 * 60 * 1))
-        time.sleep(60 * 60 * 1)
+        logger.info("Sleep for %d hours" % (period / 3600))
+        time.sleep(period)
