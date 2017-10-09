@@ -1,8 +1,10 @@
 import traceback
 
-from modules.db_core import create_db, FeedTotal
-from modules.general import grouper
+from modules.db_core import create_db_session, FeedTotal
+from modules.general import General
 from sqlalchemy.sql import func
+
+General = General()
 
 
 def add_column(engine, table_name, column):
@@ -45,7 +47,7 @@ def search_net(db_session, table_name, net):
 
 def db_add_data(data_to_add):
     try:
-        db_session = create_db()
+        db_session = create_db_session("feed")
     except Exception as e:
         traceback.print_exc()
         return "Error while db init {}".format(e)
@@ -54,7 +56,7 @@ def db_add_data(data_to_add):
         if valid_column_name not in get_columns(db_session, FeedTotal.__tablename__):
             add_column(db_session, FeedTotal.__tablename__, valid_column_name)
             db_session.commit()
-        for ip_group in grouper(n=100000, iterable=data_to_add.get("added_ip")):
+        for ip_group in General.group_by(n=100000, iterable=data_to_add.get("added_ip")):
             for ip in ip_group:
                 add_record(db_session, FeedTotal.__tablename__, ip, valid_column_name)
             db_session.commit()
@@ -71,7 +73,7 @@ def db_add_data(data_to_add):
 def db_search(net_list):
     search_result_total = []
     try:
-        db_session = create_db()
+        db_session = create_db_session("feed")
     except Exception as e:
         traceback.print_exc()
         return "Error while db init {}".format(e)

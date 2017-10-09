@@ -6,32 +6,27 @@ import logging
 import git
 import unidiff
 from modules.db_firehol import db_add_data
-from modules.general import added_ip_re, added_net_re, ip_re, net_re, not_periodic_feed_re, uniq_ips_re
-from modules.general import read_file, limit_memory, normalize_net4, load_cfg
+from modules.general import General
 
-repo_path = "%s/%s" % (os.path.dirname(os.path.abspath(__file__)), "git_data/firehol")
-log_path = "%s/%s" % (os.path.dirname(os.path.abspath(__file__)), "log/run.log")
-firehol_ipsets_git = load_cfg("%s/%s" % (os.path.dirname(os.path.abspath(__file__)), "conf/config.json")).get("firehol_ipsets_git")
-unique_ips_limit = load_cfg("%s/%s" % (os.path.dirname(os.path.abspath(__file__)), "conf/config.json")).get("unique_ips_limit")
-sync_period_h = load_cfg("%s/%s" % (os.path.dirname(os.path.abspath(__file__)), "conf/config.json")).get("sync_period_h")
+General = General()
 
 logger = logging.getLogger(__name__)
-formatter = logging.basicConfig(filename=log_path, level=logging.INFO, format="%(asctime)s [%(levelname)s]  [%(filename)s] %(funcName)s: %(message)s")
+formatter = logging.basicConfig(filename=General.log_path, level=logging.INFO, format="%(asctime)s [%(levelname)s]  [%(filename)s] %(funcName)s: %(message)s")
 
 
 def sync_git_repo():
-    repo_path_exists = os.path.exists(repo_path)
+    repo_path_exists = os.path.exists(General.repo_path)
     if not repo_path_exists:
         logger.info("Cloning Firehol repo from remote origin")
-        os.makedirs(repo_path)
-        git.Repo.clone_from(url=firehol_ipsets_git, to_path=repo_path)
+        os.makedirs(General.repo_path)
+        git.Repo.clone_from(url=General.firehol_ipsets_git, to_path=General.repo_path)
         try:
-            firehol_repo = git.cmd.Git(working_dir=repo_path)
+            firehol_repo = git.cmd.Git(working_dir=General.repo_path)
             firehol_repo.checkout("master")
         except git.GitCommandError as e:
             traceback.print_exc()
             return "git error {}".format(e)
-        for filename_abs in get_proper_feed_files(path_to_search=repo_path):
+        for filename_abs in get_proper_feed_files(path_to_search=General.repo_path):
             new_data = parse_feed_file(feed_file=filename_abs)
             if new_data.get("added_ip"):
                 db_add_data(new_data)
@@ -40,7 +35,7 @@ def sync_git_repo():
     else:
         logger.info("Fetching diff from remote origin")
         try:
-            firehol_repo = git.cmd.Git(working_dir=repo_path)
+            firehol_repo = git.cmd.Git(working_dir=General.repo_path)
             firehol_repo.checkout("master")
         except git.GitCommandError as e:
             traceback.print_exc()
@@ -58,8 +53,8 @@ def sync_git_repo():
             if parsed_diff.added_files:
                 logger.info("Found new feed files")
                 for added_file in parsed_diff.added_files:
-                    filename_abs = "%s/%s" % (repo_path, added_file.target_file[2:])
-                    if validate_feed(feed_file_abs=filename_abs, unique_ips_limit=unique_ips_limit):
+                    filename_abs = "%s/%s" % (General.repo_path, added_file.target_file[2:])
+                    if validate_feed(feed_file_abs=filename_abs, unique_ips_limit=General.unique_ips_limit):
                         new_data = parse_feed_file(feed_file=filename_abs)
                         if new_data.get("added_ip"):
                             db_add_data(new_data)
@@ -68,8 +63,8 @@ def sync_git_repo():
             if parsed_diff.modified_files:
                 logger.info("Found some diffs")
                 for change_in_file in parsed_diff.modified_files:
-                    filename_abs = "%s/%s" % (repo_path, change_in_file.target_file[2:])
-                    if validate_feed(feed_file_abs=filename_abs, unique_ips_limit=unique_ips_limit):
+                    filename_abs = "%s/%s" % (General.repo_path, change_in_file.target_file[2:])
+                    if validate_feed(feed_file_abs=filename_abs, unique_ips_limit=General.unique_ips_limit):
                         diff_data = get_diff_data(diff_data=change_in_file, filename_abs=filename_abs)
                         if diff_data.get("added_ip"):
                             db_add_data(diff_data)
@@ -84,15 +79,15 @@ def parse_feed_file(feed_file):
     feed_name = feed_file.split('/').pop()
     new_ip = []
     new_net = []
-    data_strings = read_file(filename=feed_file)
+    data_strings = General.read_file(filename=feed_file)
     for data_string in data_strings:
         if "#" in data_string:
             pass
         else:
-            if ip_re.search(data_string):
-                new_ip.append(ip_re.search(data_string).group())
-            elif net_re.search(data_string):
-                new_net.extend(normalize_net4(net_re.search(data_string).group()))
+            if General.ip_re.search(data_string):
+                new_ip.append(General.ip_re.search(data_string).group())
+            elif General.net_re.search(data_string):
+                new_net.extend(General.normalize_net4(General.net_re.search(data_string).group()))
             else:
                 pass
     new = {
@@ -105,10 +100,10 @@ def parse_feed_file(feed_file):
 def get_diff_data(diff_data, filename_abs):
     feed_name = filename_abs.split('/').pop()
     added_ip = []
-    for ip_item in added_ip_re.finditer(str(diff_data)):
+    for ip_item in General.added_ip_re.finditer(str(diff_data)):
         added_ip.append(ip_item.group())
-    for net_item in added_net_re.finditer(str(diff_data)):
-        added_ip.extend(normalize_net4(net_item.group()))
+    for net_item in General.added_net_re.finditer(str(diff_data)):
+        added_ip.extend(General.normalize_net4(net_item.group()))
     diff = {
         "feed_name": feed_name,
         "added_ip": added_ip
@@ -119,8 +114,7 @@ def get_diff_data(diff_data, filename_abs):
 def get_proper_feed_files(path_to_search):
     for file in os.listdir(path_to_search):
         file_path_abs = os.path.join(path_to_search, file)
-        suitable_feed = validate_feed(feed_file_abs=file_path_abs, unique_ips_limit=unique_ips_limit)
-        if suitable_feed:
+        if validate_feed(feed_file_abs=file_path_abs, unique_ips_limit=General.unique_ips_limit):
             yield file_path_abs
 
 
@@ -129,13 +123,13 @@ def validate_feed(feed_file_abs, unique_ips_limit):
     if "firehol_" in feed_file_abs:
         suitable = False
         return suitable
-    not_periodic_feed = not_periodic_feed_re.search(feed_file_abs)
+    not_periodic_feed = General.not_periodic_feed_re.search(feed_file_abs)
     if not not_periodic_feed:
         suitable = False
         return suitable
-    data_strings = read_file(filename=feed_file_abs)
+    data_strings = General.read_file(filename=feed_file_abs)
     for data_string in data_strings:
-        unique_ips_count = uniq_ips_re.search(data_string)
+        unique_ips_count = General.uniq_ips_re.search(data_string)
         if unique_ips_count:
             if int(unique_ips_count.group(1)) > unique_ips_limit:
                 suitable = False
@@ -148,8 +142,7 @@ def validate_feed(feed_file_abs, unique_ips_limit):
 
 
 if __name__ == "__main__":
-    period = 60 * 60 * int(sync_period_h)
-    limit_memory(maxsize_g=12)
+    period = 60 * 60 * int(General.sync_period_h)
     while True:
         logger.info("Start sync_git_repo()")
         sync_git_repo()
