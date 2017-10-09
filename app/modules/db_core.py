@@ -7,6 +7,7 @@ from sqlalchemy.dialects import postgresql
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import func
+from sqlalchemy.pool import NullPool
 from sqlalchemy_utils import database_exists, create_database
 
 database_user = load_cfg("%s/%s" % (os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "conf/config.json")).get("pg_database_user")
@@ -25,7 +26,7 @@ class FeedTotal(Base):
 
 
 def create_db():
-    engine = create_engine(connection_string, pool_size=100, max_overflow=0)
+    engine = create_engine(connection_string, poolclass=NullPool)
     if not database_exists(engine.url):
         create_database(engine.url)
     Base.metadata.create_all(engine)
