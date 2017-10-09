@@ -32,11 +32,11 @@ def search_net(db_session, table_name, net):
     for row in result:
         feed_name = []
         for key in row.keys():
-            if row[key] and key != "id" and key != "ip" and key != "last_added":
+            if row.get("key") and key != "id" and key != "ip" and key != "last_added":
                 feed_name.append(key)
         data = {
-            "ip": row["ip"],
-            "last_added": row["last_added"],
+            "ip": row.get("ip"),
+            "last_added": row.get("last_added"),
             "feeds": feed_name
         }
         search_results.append(data)
