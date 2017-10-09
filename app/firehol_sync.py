@@ -10,9 +10,10 @@ from modules.general import added_ip_re, added_net_re, ip_re, net_re, not_period
 from modules.general import read_file, limit_memory, normalize_net4, load_cfg
 
 repo_path = "%s/%s" % (os.path.dirname(os.path.abspath(__file__)), "git_data/firehol")
+log_path = "%s/%s" % (os.path.dirname(os.path.abspath(__file__)), "log/run.log")
 firehol_ipsets_git = load_cfg("%s/%s" % (os.path.dirname(os.path.abspath(__file__)), "conf/config.json")).get("firehol_ipsets_git")
 unique_ips_limit = load_cfg("%s/%s" % (os.path.dirname(os.path.abspath(__file__)), "conf/config.json")).get("unique_ips_limit")
-log_path = "%s/%s" % (os.path.dirname(os.path.abspath(__file__)), "log/run.log")
+sync_period_h = load_cfg("%s/%s" % (os.path.dirname(os.path.abspath(__file__)), "conf/config.json")).get("sync_period_h")
 
 logger = logging.getLogger(__name__)
 formatter = logging.basicConfig(filename=log_path, level=logging.INFO, format="%(asctime)s [%(levelname)s]  [%(filename)s] %(funcName)s: %(message)s")
@@ -147,7 +148,7 @@ def validate_feed(feed_file_abs, unique_ips_limit):
 
 
 if __name__ == "__main__":
-    period = 60 * 60 * 12
+    period = 60 * 60 * int(sync_period_h)
     limit_memory(maxsize_g=12)
     while True:
         logger.info("Start sync_git_repo()")
