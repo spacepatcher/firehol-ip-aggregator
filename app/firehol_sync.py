@@ -76,7 +76,7 @@ def sync_git_repo():
                 logger.info("Adding data from diffs successfully finished")
         except git.GitCommandError as e:
             return "git error {}".format(e)
-        logger.info("Adding data successfully finished")
+    logger.info("The iteration on synchronization is complete")
 
 
 def parse_feed_file(feed_file):
