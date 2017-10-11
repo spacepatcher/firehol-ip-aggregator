@@ -3,6 +3,7 @@ import itertools
 import re
 import os
 import netaddr
+from multiprocessing import Semaphore, cpu_count
 
 
 class General:
@@ -20,6 +21,7 @@ class General:
         self.config = self.load_config("%s/%s" % (os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "conf/config.json"))
         self.database_user = self.config.get("pg_database_user")
         self.database_password = self.config.get("pg_database_password")
+        self.database_name = self.config.get("pg_database_name")
         self.server_address = self.config.get("pg_server_address")
         self.firehol_ipsets_git = self.config.get("firehol_ipsets_git")
         self.sync_period_h = self.config.get("sync_period_h")
@@ -54,3 +56,6 @@ class General:
             ip_network = input
             if not netaddr.IPNetwork(ip_network).is_private():
                 return True
+
+    def get_cpu_count(self):
+        return Semaphore(cpu_count()).get_value()
