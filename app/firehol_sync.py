@@ -11,6 +11,11 @@ from modules.db_firehol import db_add_data
 from modules.general import General
 
 
+General = General()
+logger = logging.getLogger(__name__)
+formatter = logging.basicConfig(filename=General.log_path, level=logging.INFO, format="%(asctime)s [%(levelname)s] [%(filename)s] %(funcName)s: %(message)s")
+
+
 class SyncGit(General):
     def __init__(self):
         super().__init__()
@@ -48,12 +53,6 @@ class SyncGit(General):
             return "git error {}".format(e)
         logger.info("Successfully fetched diff from remote origin")
         return diff
-
-    def get_feed_files(self):
-        feed_files = list()
-        for feed_file in os.listdir(self.repo_path):
-            feed_files.append(os.path.join(self.repo_path, feed_file))
-        return feed_files
 
     def validate_feed(self, feed_file_path):
         unique_ips_count = None
@@ -103,11 +102,7 @@ class SyncGit(General):
         }
         return diff_data
 
-
-General = General()
 SyncGit = SyncGit()
-logger = logging.getLogger(__name__)
-formatter = logging.basicConfig(filename=General.log_path, level=logging.INFO, format="%(asctime)s [%(levelname)s] [%(filename)s] %(funcName)s: %(message)s")
 
 
 def sync_with_db_new(feed_path):
@@ -135,7 +130,7 @@ if __name__ == "__main__":
         repo_path_exists = os.path.exists(General.repo_path)
         if not repo_path_exists:
             SyncGit.clone_from_remote()
-            feed_files_path_list = SyncGit.get_feed_files()
+            feed_files_path_list = SyncGit.get_files(General.repo_path)
             try:
                 pool = Pool(processes=General.get_cpu_count())
                 pool.map(sync_with_db_new, feed_files_path_list)

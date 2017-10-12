@@ -3,6 +3,7 @@ import itertools
 import re
 import os
 import netaddr
+import logging
 from multiprocessing import Semaphore, cpu_count
 
 
@@ -27,8 +28,8 @@ class General:
         self.sync_period_h = self.config.get("sync_period_h")
         self.unique_ips_limit = self.config.get("unique_ips_limit")
 
-    def jsonify(self, data):
-        return json.dumps(data, indent=4, sort_keys=True)
+        self.logger = logging.getLogger(__name__)
+        self.formatter = logging.basicConfig(filename=self.log_path, level=logging.INFO, format="%(asctime)s [%(levelname)s] [%(filename)s] %(funcName)s: %(message)s")
 
     def load_config(self, config):
         with open(config) as file_obj:
@@ -59,3 +60,9 @@ class General:
 
     def get_cpu_count(self):
         return Semaphore(cpu_count()).get_value()
+
+    def get_files(self, directory):
+        files = list()
+        for file in os.listdir(directory):
+            files.append(os.path.join(directory, file))
+        return files
