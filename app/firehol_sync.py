@@ -10,19 +10,17 @@ import unidiff
 from modules.db_firehol import db_add_data
 from modules.general import General
 
-General = General()
 
-logger = logging.getLogger(__name__)
-formatter = logging.basicConfig(filename=General.log_path, level=logging.INFO, format="%(asctime)s [%(levelname)s] [%(filename)s] %(funcName)s: %(message)s")
+class SyncGit(General):
+    def __init__(self):
+        super().__init__()
 
-
-class SyncGit():
     def clone_from_remote(self):
         logger.info("Cloning Firehol repo from remote origin")
-        os.makedirs(General.repo_path)
-        git.Repo.clone_from(url=General.firehol_ipsets_git, to_path=General.repo_path)
+        os.makedirs(self.repo_path)
+        git.Repo.clone_from(url=self.firehol_ipsets_git, to_path=self.repo_path)
         try:
-            firehol_repo = git.cmd.Git(working_dir=General.repo_path)
+            firehol_repo = git.cmd.Git(working_dir=self.repo_path)
             firehol_repo.checkout("master")
         except git.GitCommandError as e:
             traceback.print_exc()
@@ -32,7 +30,7 @@ class SyncGit():
     def fetch_diff(self):
         logger.info("Fetching diff from remote origin")
         try:
-            firehol_repo = git.cmd.Git(working_dir=General.repo_path)
+            firehol_repo = git.cmd.Git(working_dir=self.repo_path)
             firehol_repo.checkout("master")
         except git.GitCommandError as e:
             traceback.print_exc()
@@ -53,23 +51,23 @@ class SyncGit():
 
     def get_feed_files(self):
         feed_files = list()
-        for feed_file in os.listdir(General.repo_path):
-            feed_files.append(os.path.join(General.repo_path, feed_file))
+        for feed_file in os.listdir(self.repo_path):
+            feed_files.append(os.path.join(self.repo_path, feed_file))
         return feed_files
 
     def validate_feed(self, feed_file_path):
         unique_ips_count = None
         if not ".ipset" or ".netset" in feed_file_path:
             return False
-        if not General.not_periodic_feed_re.search(feed_file_path):
+        if not self.not_periodic_feed_re.search(feed_file_path):
             return False
-        for data_string in General.read_file(feed_file_path):
-            if General.uniq_ips_re.search(data_string):
-                unique_ips_count = int(General.uniq_ips_re.search(data_string).group(1))
+        for data_string in self.read_file(feed_file_path):
+            if self.uniq_ips_re.search(data_string):
+                unique_ips_count = int(self.uniq_ips_re.search(data_string).group(1))
                 break
             else:
                 unique_ips_count = None
-        if unique_ips_count and unique_ips_count > General.unique_ips_limit:
+        if unique_ips_count and unique_ips_count > self.unique_ips_limit:
             return False
         return True
 
@@ -77,15 +75,15 @@ class SyncGit():
         feed_name = feed_file.split('/').pop()
         new_ip = []
         new_net = []
-        data_strings = General.read_file(filename=feed_file)
+        data_strings = self.read_file(filename=feed_file)
         for data_string in data_strings:
             if "#" in data_string:
                 pass
             else:
-                if General.ip_re.search(data_string):
-                    new_ip.append(General.ip_re.search(data_string).group())
-                elif General.net_re.search(data_string):
-                    new_net.extend(General.normalize_net4(General.net_re.search(data_string).group()))
+                if self.ip_re.search(data_string):
+                    new_ip.append(self.ip_re.search(data_string).group())
+                elif self.net_re.search(data_string):
+                    new_net.extend(self.normalize_net4(self.net_re.search(data_string).group()))
         new_data = {
             "feed_name": feed_name,
             "added_ip": new_ip + new_net
@@ -95,10 +93,10 @@ class SyncGit():
     def get_diff_data(self, diff_data, filename_path):
         feed_name = filename_path.split('/').pop()
         added_ip = []
-        for ip_item in General.added_ip_re.finditer(str(diff_data)):
+        for ip_item in self.added_ip_re.finditer(str(diff_data)):
             added_ip.append(ip_item.group())
-        for net_item in General.added_net_re.finditer(str(diff_data)):
-            added_ip.extend(General.normalize_net4(net_item.group()))
+        for net_item in self.added_net_re.finditer(str(diff_data)):
+            added_ip.extend(self.normalize_net4(net_item.group()))
         diff_data = {
             "feed_name": feed_name,
             "added_ip": added_ip
@@ -106,7 +104,10 @@ class SyncGit():
         return diff_data
 
 
+General = General()
 SyncGit = SyncGit()
+logger = logging.getLogger(__name__)
+formatter = logging.basicConfig(filename=General.log_path, level=logging.INFO, format="%(asctime)s [%(levelname)s] [%(filename)s] %(funcName)s: %(message)s")
 
 
 def sync_with_db_new(feed_path):
