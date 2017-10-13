@@ -105,7 +105,7 @@ def sync_with_db_new(feed_path):
         new_data = SyncGit.parse_feed_file(feed_path)
         if new_data.get("added_ip"):
             SyncGit.logger.info("Found %d new data item(s) in new file %s" % (len(new_data.get("added_ip")), feed_path))
-            db_add_data(new_data, new_data.get("feed_name"))
+            db_add_data(new_data, new_data.get("feed_name").split(".")[0])
 
 
 def sync_with_db_diff(diff_serialized):
@@ -115,7 +115,7 @@ def sync_with_db_diff(diff_serialized):
         diff_data = SyncGit.get_diff_data(diff, modified_feed_path)
         if diff_data.get("added_ip"):
             SyncGit.logger.info("Found %d new data item(s) in diff for file %s" % (len(diff_data.get("added_ip")), modified_feed_path))
-            db_add_data(diff_data, diff_data.get("feed_name"))
+            db_add_data(diff_data, diff_data.get("feed_name").split(".")[0])
 
 
 if __name__ == "__main__":
