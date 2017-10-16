@@ -28,7 +28,7 @@ class FeedAlchemy(General):
     def get_feed_meta_table_object(self, table_name):
         metadata = MetaData()
         feed_meta_table = Table(table_name, metadata,
-            Column("name", postgresql.TEXT, primary_key=True),
+            Column("name", postgresql.TEXT),
             Column("maintainer", postgresql.TEXT),
             Column("maintainer_url", postgresql.TEXT),
             Column("list_source_url", postgresql.TEXT),
