@@ -15,7 +15,7 @@ class FeedAlchemy(General):
         if not database_exists(self.engine.url):
             create_database(self.engine.url)
 
-    def get_table_access(self, table_name):
+    def get_feed_table_object(self, table_name):
         metadata = MetaData()
         feed_table = Table(table_name, metadata,
             Column("ip", postgresql.INET, primary_key=True),
@@ -23,4 +23,21 @@ class FeedAlchemy(General):
             Column("last_added", DateTime(timezone=True), server_default=func.now())
         )
         metadata.create_all(self.engine)
-        return self.create_db_session(self.engine), feed_table
+        return feed_table
+
+    def get_feed_meta_table_object(self, table_name):
+        metadata = MetaData()
+        feed_meta_table = Table(table_name, metadata,
+            Column("name", postgresql.TEXT, primary_key=True),
+            Column("maintainer", postgresql.TEXT),
+            Column("maintainer_url", postgresql.TEXT),
+            Column("list_source_url", postgresql.TEXT),
+            Column("source_file_date", postgresql.TEXT),
+            Column("category", postgresql.TEXT),
+            Column("entries", postgresql.TEXT)
+        )
+        metadata.create_all(self.engine)
+        return feed_meta_table
+
+    def get_db_session(self):
+        return self.create_db_session(self.engine)

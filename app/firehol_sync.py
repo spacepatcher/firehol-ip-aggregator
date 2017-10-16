@@ -65,36 +65,74 @@ class SyncGit(General):
         return True
 
     def parse_feed_file(self, feed_file):
-        feed_name = feed_file.split('/').pop()
-        new_ip = []
-        new_net = []
+        feed_name = str()
+        new_ip = list()
+        new_net = list()
+        meta = dict()
         data_strings = self.read_file(feed_file)
-        for data_string in data_strings:
+        for index, data_string in enumerate(data_strings):
             if "#" in data_string:
-                pass
+                if index == 1:
+                    feed_name = data_string.split("# ")[1]
+                    meta.update({"name": data_string.split("# ")[1]})
+                if "Maintainer URL" in data_string:
+                    meta.update({"maintainer_url": data_string.split(": ")[1]})
+                elif "Maintainer" in data_string:
+                    meta.update({"maintainer": data_string.split(": ")[1]})
+                if "List source URL" in data_string:
+                    meta.update({"list_source_url": data_string.split(": ")[1]})
+                if "Source File Date" in data_string:
+                    meta.update({"source_file_date": data_string.split(": ")[1]})
+                if "Category" in data_string:
+                    meta.update({"category": data_string.split(": ")[1]})
+                if "Entries" in data_string:
+                    meta.update({"entries": data_string.split(": ")[1]})
             else:
                 if self.ip_re.search(data_string):
                     new_ip.append(self.ip_re.search(data_string).group())
                 elif self.net_re.search(data_string):
                     new_net.extend(self.normalize_net4(self.net_re.search(data_string).group()))
-        new_data = {
+        feed_data = {
             "feed_name": feed_name,
-            "added_ip": new_ip + new_net
+            "added_ip": new_ip + new_net,
+            "feed_meta": meta
         }
-        return new_data
+        return feed_data
 
-    def get_diff_data(self, diff_data, filename_path):
-        feed_name = filename_path.split('/').pop()
-        added_ip = []
+    def get_diff_data(self, diff_data, modified_feed_path):
+        feed_name = str()
+        added_ip = list()
+        meta = dict()
+        data_strings = self.read_file(modified_feed_path)
+        for index, data_string in enumerate(data_strings):
+            if "#" in data_string:
+                if index == 1:
+                    feed_name = data_string.split("# ")[1]
+                    meta.update({"name": data_string.split("# ")[1]})
+                if "Maintainer URL" in data_string:
+                    meta.update({"maintainer_url": data_string.split(": ")[1]})
+                elif "Maintainer" in data_string:
+                    meta.update({"maintainer": data_string.split(": ")[1]})
+                if "List source URL" in data_string:
+                    meta.update({"list_source_url": data_string.split(": ")[1]})
+                if "Source File Date" in data_string:
+                    meta.update({"source_file_date": data_string.split(": ")[1]})
+                if "Category" in data_string:
+                    meta.update({"category": data_string.split(": ")[1]})
+                if "Entries" in data_string:
+                    meta.update({"entries": data_string.split(": ")[1]})
+            else:
+                break
         for ip_item in self.added_ip_re.finditer(str(diff_data)):
             added_ip.append(ip_item.group())
         for net_item in self.added_net_re.finditer(str(diff_data)):
             added_ip.extend(self.normalize_net4(net_item.group()))
-        diff_data = {
+        feed_diff_data = {
             "feed_name": feed_name,
-            "added_ip": added_ip
+            "added_ip": added_ip,
+            "feed_meta": meta
         }
-        return diff_data
+        return feed_diff_data
 
 
 SyncGit = SyncGit()
@@ -102,20 +140,20 @@ SyncGit = SyncGit()
 
 def sync_with_db_new(feed_path):
     if SyncGit.validate_feed(feed_path):
-        new_data = SyncGit.parse_feed_file(feed_path)
-        if new_data.get("added_ip"):
-            SyncGit.logger.info("Found %d new data item(s) in new file %s" % (len(new_data.get("added_ip")), feed_path))
-            db_add_data(new_data, new_data.get("feed_name").split(".")[0])
+        feed_data = SyncGit.parse_feed_file(feed_path)
+        if feed_data.get("added_ip"):
+            SyncGit.logger.info("Found %d new data item(s) in new file %s" % (len(feed_data.get("added_ip")), feed_path))
+            db_add_data(feed_data)
 
 
 def sync_with_db_diff(diff_serialized):
     diff = pickle.loads(diff_serialized)
     modified_feed_path = "%s/%s" % (SyncGit.repo_path, diff.target_file[2:])
     if SyncGit.validate_feed(modified_feed_path):
-        diff_data = SyncGit.get_diff_data(diff, modified_feed_path)
-        if diff_data.get("added_ip"):
-            SyncGit.logger.info("Found %d new data item(s) in diff for file %s" % (len(diff_data.get("added_ip")), modified_feed_path))
-            db_add_data(diff_data, diff_data.get("feed_name").split(".")[0])
+        feed_diff_data = SyncGit.get_diff_data(diff, modified_feed_path)
+        if feed_diff_data.get("added_ip"):
+            SyncGit.logger.info("Found %d new data item(s) in diff for file %s" % (len(feed_diff_data.get("added_ip")), modified_feed_path))
+            db_add_data(feed_diff_data)
 
 
 if __name__ == "__main__":
