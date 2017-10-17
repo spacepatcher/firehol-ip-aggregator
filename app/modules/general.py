@@ -5,7 +5,6 @@ import os
 import netaddr
 import logging
 from multiprocessing import Semaphore, cpu_count
-from sqlalchemy.orm import sessionmaker
 
 
 class General:
@@ -67,11 +66,3 @@ class General:
         for file in os.listdir(directory):
             files.append(os.path.join(directory, file))
         return files
-
-    def create_db_session(self, engine):
-        try:
-            cursor = engine.connect()
-            Session = sessionmaker(bind=cursor)
-            return Session()
-        except Exception:
-            self.logger.exception("Error in creation DB session")

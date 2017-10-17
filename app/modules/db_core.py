@@ -4,6 +4,7 @@ from sqlalchemy.dialects import postgresql
 from sqlalchemy.pool import NullPool
 from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy.sql import func
+from sqlalchemy.orm import sessionmaker
 from modules.general import General
 
 
@@ -40,4 +41,9 @@ class FeedAlchemy(General):
         return feed_meta_table
 
     def get_db_session(self):
-        return self.create_db_session(self.engine)
+        try:
+            cursor = self.engine.connect()
+            Session = sessionmaker(bind=cursor)
+            return Session()
+        except Exception:
+            self.logger.exception("Error in creation DB session")
