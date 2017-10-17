@@ -42,7 +42,7 @@ class FeedAlchemy(General):
 
     def get_db_session(self):
         try:
-            cursor = self.engine.connect()
+            cursor = self.engine
             Session = sessionmaker(bind=cursor)
             return Session()
         except Exception:
