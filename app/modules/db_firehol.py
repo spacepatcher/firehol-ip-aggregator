@@ -10,7 +10,7 @@ FeedAlchemy = FeedAlchemy()
 
 def db_add_data(data_to_add):
     feed_table_name = "feed_" + data_to_add.get("feed_name")
-    feed_meta_table_name = "feed_meta_" + data_to_add.get("feed_name")
+    feed_meta_table_name = "meta_" + data_to_add.get("feed_name")
     feed_table = FeedAlchemy.get_feed_table_object(feed_table_name)
     feed_meta_table = FeedAlchemy.get_feed_meta_table_object(feed_meta_table_name)
     db_session = FeedAlchemy.get_db_session()
