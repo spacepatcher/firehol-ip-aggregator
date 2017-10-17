@@ -70,7 +70,7 @@ class SyncGit(General):
         for index, data_string in enumerate(data_strings):
             if "#" in data_string:
                 if index == 1:
-                    meta.update({"name": data_string.split("# ")[1]})
+                    meta.update({"feed_name": data_string.split("# ")[1]})
                 if "Maintainer URL" in data_string:
                     meta.update({"maintainer_url": data_string.split(": ")[1]})
                 elif "Maintainer" in data_string:
@@ -98,7 +98,7 @@ class SyncGit(General):
             elif self.net_re.search(data_string):
                 new_net.extend(self.normalize_net4(self.net_re.search(data_string).group()))
         feed_data = {
-            "feed_name": meta.get("name"),
+            "feed_name": meta.get("feed_name"),
             "added_ip": new_ip + new_net,
             "feed_meta": meta
         }
@@ -112,7 +112,7 @@ class SyncGit(General):
         for net_item in self.added_net_re.finditer(str(diff_data)):
             added_ip.extend(self.normalize_net4(net_item.group()))
         feed_diff_data = {
-            "feed_name": meta.get("name"),
+            "feed_name": meta.get("feed_name"),
             "added_ip": added_ip,
             "feed_meta": meta
         }

@@ -21,7 +21,8 @@ class FeedAlchemy(General):
         feed_table = Table(table_name, metadata,
             Column("ip", postgresql.INET, primary_key=True),
             Column("first_seen", DateTime(timezone=True), server_default=func.now()),
-            Column("last_added", DateTime(timezone=True), server_default=func.now())
+            Column("last_added", DateTime(timezone=True), server_default=func.now()),
+            Column("feed_name", postgresql.TEXT)
         )
         metadata.create_all(self.engine)
         return feed_table
@@ -29,7 +30,7 @@ class FeedAlchemy(General):
     def get_feed_meta_table_object(self, table_name):
         metadata = MetaData()
         feed_meta_table = Table(table_name, metadata,
-            Column("name", postgresql.TEXT),
+            Column("feed_name", postgresql.TEXT, primary_key=True),
             Column("maintainer", postgresql.TEXT),
             Column("maintainer_url", postgresql.TEXT),
             Column("list_source_url", postgresql.TEXT),
