@@ -64,50 +64,12 @@ class SyncGit(General):
             return False
         return True
 
-    def parse_feed_file(self, feed_file):
-        feed_name = str()
-        new_ip = list()
-        new_net = list()
+    def get_meta_info(self, feed_path):
         meta = dict()
-        data_strings = self.read_file(feed_file)
+        data_strings = self.read_file(feed_path)
         for index, data_string in enumerate(data_strings):
             if "#" in data_string:
                 if index == 1:
-                    feed_name = data_string.split("# ")[1]
-                    meta.update({"name": data_string.split("# ")[1]})
-                if "Maintainer URL" in data_string:
-                    meta.update({"maintainer_url": data_string.split(": ")[1]})
-                elif "Maintainer" in data_string:
-                    meta.update({"maintainer": data_string.split(": ")[1]})
-                if "List source URL" in data_string:
-                    meta.update({"list_source_url": data_string.split(": ")[1]})
-                if "Source File Date" in data_string:
-                    meta.update({"source_file_date": data_string.split(": ")[1]})
-                if "Category" in data_string:
-                    meta.update({"category": data_string.split(": ")[1]})
-                if "Entries" in data_string:
-                    meta.update({"entries": data_string.split(": ")[1]})
-            else:
-                if self.ip_re.search(data_string):
-                    new_ip.append(self.ip_re.search(data_string).group())
-                elif self.net_re.search(data_string):
-                    new_net.extend(self.normalize_net4(self.net_re.search(data_string).group()))
-        feed_data = {
-            "feed_name": feed_name,
-            "added_ip": new_ip + new_net,
-            "feed_meta": meta
-        }
-        return feed_data
-
-    def get_diff_data(self, diff_data, modified_feed_path):
-        feed_name = str()
-        added_ip = list()
-        meta = dict()
-        data_strings = self.read_file(modified_feed_path)
-        for index, data_string in enumerate(data_strings):
-            if "#" in data_string:
-                if index == 1:
-                    feed_name = data_string.split("# ")[1]
                     meta.update({"name": data_string.split("# ")[1]})
                 if "Maintainer URL" in data_string:
                     meta.update({"maintainer_url": data_string.split(": ")[1]})
@@ -123,12 +85,34 @@ class SyncGit(General):
                     meta.update({"entries": data_string.split(": ")[1]})
             else:
                 break
+        return meta
+
+    def parse_feed_file(self, feed_path):
+        new_ip = list()
+        new_net = list()
+        meta = self.get_meta_info(feed_path)
+        data_strings = self.read_file(feed_path)
+        for index, data_string in enumerate(data_strings):
+            if self.ip_re.search(data_string):
+                new_ip.append(self.ip_re.search(data_string).group())
+            elif self.net_re.search(data_string):
+                new_net.extend(self.normalize_net4(self.net_re.search(data_string).group()))
+        feed_data = {
+            "feed_name": meta.get("name"),
+            "added_ip": new_ip + new_net,
+            "feed_meta": meta
+        }
+        return feed_data
+
+    def get_diff_data(self, diff_data, modified_feed_path):
+        added_ip = list()
+        meta = self.get_meta_info(modified_feed_path)
         for ip_item in self.added_ip_re.finditer(str(diff_data)):
             added_ip.append(ip_item.group())
         for net_item in self.added_net_re.finditer(str(diff_data)):
             added_ip.extend(self.normalize_net4(net_item.group()))
         feed_diff_data = {
-            "feed_name": feed_name,
+            "feed_name": meta.get("name"),
             "added_ip": added_ip,
             "feed_meta": meta
         }
