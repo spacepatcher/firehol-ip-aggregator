@@ -145,10 +145,7 @@ if __name__ == "__main__":
         SyncGit.logger.info("Started sync_git_repo()")
         repo_path_exists = os.path.exists(SyncGit.repo_path)
         if not repo_path_exists:
-            return_value = SyncGit.clone_from_remote()
-            if not return_value:
-                SyncGit.logger.warning("Something went wrong with git synchronisation")
-                continue
+            SyncGit.clone_from_remote()
             feed_files_path_list = SyncGit.get_files(SyncGit.repo_path)
             try:
                 pool = Pool(SyncGit.get_cpu_count())
@@ -159,28 +156,28 @@ if __name__ == "__main__":
                 SyncGit.logger.exception("Error in multiprocessing occurred")
         else:
             diff = SyncGit.fetch_diff()
-            if not diff:
-                SyncGit.logger.warning("Something went wrong with git synchronisation")
-                continue
-            if diff.added_files:
-                SyncGit.logger.info("After fetching found %d new file(s)" % len(diff.added_files))
-                new_feeds_path = ["%s/%s" % (SyncGit.repo_path, added_files.target_file[2:]) for added_files in diff.added_files]
-                try:
-                    pool = Pool(SyncGit.get_cpu_count())
-                    pool.map(sync_with_db_new, new_feeds_path)
-                    pool.close()
-                    pool.join()
-                except Exception as e:
-                    SyncGit.logger.exception("Error in multiprocessing occurred")
-            if diff.modified_files:
-                SyncGit.logger.info("After fetching found %d modified file(s)" % len(diff.modified_files))
-                modified_feeds_serialized = [pickle.dumps(modified_files) for modified_files in diff.modified_files]
-                try:
-                    pool = Pool(SyncGit.get_cpu_count())
-                    pool.map(sync_with_db_diff, modified_feeds_serialized)
-                    pool.close()
-                    pool.join()
-                except Exception as e:
-                    SyncGit.logger.exception("Error in multiprocessing occurred")
+            try:
+                if diff.added_files:
+                    SyncGit.logger.info("After fetching found %d new file(s)" % len(diff.added_files))
+                    new_feeds_path = ["%s/%s" % (SyncGit.repo_path, added_files.target_file[2:]) for added_files in diff.added_files]
+                    try:
+                        pool = Pool(SyncGit.get_cpu_count())
+                        pool.map(sync_with_db_new, new_feeds_path)
+                        pool.close()
+                        pool.join()
+                    except Exception as e:
+                        SyncGit.logger.exception("Error in multiprocessing occurred")
+                if diff.modified_files:
+                    SyncGit.logger.info("After fetching found %d modified file(s)" % len(diff.modified_files))
+                    modified_feeds_serialized = [pickle.dumps(modified_files) for modified_files in diff.modified_files]
+                    try:
+                        pool = Pool(SyncGit.get_cpu_count())
+                        pool.map(sync_with_db_diff, modified_feeds_serialized)
+                        pool.close()
+                        pool.join()
+                    except Exception as e:
+                        SyncGit.logger.exception("Error in multiprocessing occurred")
+            except AttributeError as e:
+                SyncGit.logger.exception("Diff data has an unrecognized structure")
         SyncGit.logger.info("Sleep for %d hour(s)" % (period / 3600))
         time.sleep(period)
