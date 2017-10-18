@@ -22,9 +22,9 @@ class SyncGit(General):
             firehol_repo = git.cmd.Git(self.repo_path)
             firehol_repo.checkout("master")
         except git.GitCommandError as e:
-            traceback.print_exc()
-            return "git error {}".format(e)
+            self.logger.exception("GitCommandError occurred")
         self.logger.info("Successfully cloned Firehol repo from remote origin")
+        return "Successfully"
 
     def fetch_diff(self):
         self.logger.info("Fetching diff from remote origin")
@@ -32,19 +32,18 @@ class SyncGit(General):
             firehol_repo = git.cmd.Git(self.repo_path)
             firehol_repo.checkout("master")
         except git.GitCommandError as e:
-            traceback.print_exc()
-            return "git error {}".format(e)
+            self.logger.exception("GitCommandError occurred")
         try:
             firehol_repo.fetch("origin")
             diff_stdout = firehol_repo.execute(["git", "diff", "master", "origin/master"], True).split("\n")
             try:
                 diff = unidiff.PatchSet(diff_stdout)
             except unidiff.UnidiffParseError as e:
-                return "diff parse error {}".format(e)
+                self.logger.exception("UnidiffParseError occurred")
             firehol_repo.execute(["git", "reset", "--hard", "origin/master"])
             firehol_repo.merge()
         except git.GitCommandError as e:
-            return "git error {}".format(e)
+            self.logger.exception("GitCommandError occurred")
         self.logger.info("Successfully fetched diff from remote origin")
         return diff
 
@@ -146,7 +145,10 @@ if __name__ == "__main__":
         SyncGit.logger.info("Started sync_git_repo()")
         repo_path_exists = os.path.exists(SyncGit.repo_path)
         if not repo_path_exists:
-            SyncGit.clone_from_remote()
+            return_value = SyncGit.clone_from_remote()
+            if not return_value:
+                SyncGit.logger.warning("Something went wrong with git synchronisation")
+                continue
             feed_files_path_list = SyncGit.get_files(SyncGit.repo_path)
             try:
                 pool = Pool(SyncGit.get_cpu_count())
@@ -157,6 +159,9 @@ if __name__ == "__main__":
                 SyncGit.logger.exception("Error in multiprocessing occurred")
         else:
             diff = SyncGit.fetch_diff()
+            if not diff:
+                SyncGit.logger.warning("Something went wrong with git synchronisation")
+                continue
             if diff.added_files:
                 SyncGit.logger.info("After fetching found %d new file(s)" % len(diff.added_files))
                 new_feeds_path = ["%s/%s" % (SyncGit.repo_path, added_files.target_file[2:]) for added_files in diff.added_files]
