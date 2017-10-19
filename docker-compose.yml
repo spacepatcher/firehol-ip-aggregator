@@ -17,8 +17,7 @@ services:
       - 8000:8000
     volumes:
       - ./app:/app
-      - ./docker-persistence/app-data/git_data:/app/git_data
-    entrypoint: /app/entrypoint.sh
-#    entrypoint: /app/entrypoint.sh hug -f modules/api.py
+      - ./docker-persistence/app-data/git-data:/app/git-data
+    entrypoint: /app/entrypoint.sh hug -f api.py
     depends_on:
       - postgres
