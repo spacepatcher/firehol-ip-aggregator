@@ -7,8 +7,8 @@ echo 'sudo rm -rf docker-persistence/app-data'
 sudo rm -rf docker-persistence/app-data
 echo 'sudo rm -rf docker-persistence/postgres'
 sudo rm -rf docker-persistence/postgres
-echo 'sudo rm -rf app/git_data'
-sudo rm -rf app/git_data
+echo 'sudo rm -rf app/git-data/firehol'
+sudo rm -rf app/git-data/firehol
 echo 'sudo truncate -s 0 app/log/run.log'
 sudo truncate -s 0 app/log/run.log
 
