@@ -11,13 +11,14 @@ from modules.general import General
 class FeedAlchemy(General):
     def __init__(self):
         super().__init__()
+        self.feeds_meta_table = "feeds_meta"
         self.connection_string = "postgresql://%s:%s@%s:5432/%s" % (self.database_user, self.database_password, self.server_address, self.database_name)
         self.engine = create_engine(self.connection_string, poolclass=NullPool)
         self.metadata = MetaData()
-        if not database_exists(self.engine.url):
-            create_database(self.engine.url)
 
     def get_feed_table_object(self, table_name):
+        if not database_exists(self.engine.url):
+            create_database(self.engine.url)
         feed_table = Table(table_name, self.metadata,
             Column("ip", postgresql.INET, primary_key=True),
             Column("first_seen", DateTime(timezone=True), server_default=func.now()),
@@ -28,7 +29,9 @@ class FeedAlchemy(General):
         return feed_table
 
     def get_meta_table_object(self):
-        meta_table = Table("feeds_meta", self.metadata,
+        if not database_exists(self.engine.url):
+            create_database(self.engine.url)
+        meta_table = Table(self.feeds_meta_table, self.metadata,
             Column("feed_name", postgresql.TEXT, primary_key=True),
             Column("maintainer", postgresql.TEXT),
             Column("maintainer_url", postgresql.TEXT),
