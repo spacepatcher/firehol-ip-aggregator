@@ -1,5 +1,5 @@
 from sqlalchemy import MetaData, Table, Column, DateTime, ForeignKey
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, exc
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.pool import NullPool
 from sqlalchemy_utils import database_exists, create_database
@@ -25,7 +25,7 @@ class FeedAlchemy(General):
             Column("last_added", DateTime(timezone=True), server_default=func.now()),
             Column("feed_name", postgresql.TEXT, ForeignKey("feeds_meta.feed_name"))
         )
-        self.metadata.create_all(self.engine, checkfirst=True)
+        feed_table.create(self.engine, checkfirst=True)
         return feed_table
 
     def get_meta_table_object(self):
@@ -41,7 +41,10 @@ class FeedAlchemy(General):
             Column("entries", postgresql.TEXT),
             extend_existing=True
         )
-        self.metadata.create_all(self.engine, checkfirst=True)
+        try:
+            meta_table.create(self.engine, checkfirst=True)
+        except exc.ProgrammingError:
+            pass
         return meta_table
 
     def get_db_session(self):
