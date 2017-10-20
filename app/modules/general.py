@@ -66,3 +66,13 @@ class General:
         for file in os.listdir(directory):
             files.append(os.path.join(directory, file))
         return files
+
+    def group_dict_by_key(self, dictionary_list, key):
+        bunched_dict = dict()
+        for dictionary in dictionary_list:
+            bunching_element = dictionary.pop(key, None)
+            bunched_dict.setdefault(bunching_element, []).append(dictionary)
+        if bunched_dict:
+            return bunched_dict
+        else:
+            return
