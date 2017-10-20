@@ -9,6 +9,8 @@ echo 'sudo rm -rf docker-persistence/postgres'
 sudo rm -rf docker-persistence/postgres
 echo 'sudo rm -rf app/git-data/firehol'
 sudo rm -rf app/git-data/firehol
+echo 'sudo rm -rf app/__pycache__'
+sudo rm -rf app/__pycache__
 echo 'sudo truncate -s 0 app/log/run.log'
 sudo truncate -s 0 app/log/run.log
 
