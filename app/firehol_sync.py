@@ -1,9 +1,8 @@
 import os
-import traceback
 import time
 from multiprocessing import Pool
+from subprocess import run, CalledProcessError
 import pickle
-
 import git
 import unidiff
 from modules.db_firehol import db_add_data
@@ -15,37 +14,32 @@ class SyncGit(General):
         super().__init__()
 
     def clone_from_remote(self):
-        self.logger.info("Cloning Firehol repo from remote origin")
-        os.makedirs(self.repo_path)
-        git.Repo.clone_from(self.firehol_ipsets_git, self.repo_path)
+        SyncGit.logger.info("Cloning Firehol repo from remote origin")
         try:
-            firehol_repo = git.cmd.Git(self.repo_path)
-            firehol_repo.checkout("master")
-        except git.GitCommandError as e:
-            self.logger.exception("GitCommandError occurred")
-        self.logger.info("Successfully cloned Firehol repo from remote origin")
-        return "Successfully"
+            run(["mkdir -p %s" % self.repo_path], shell=True, check=True)
+            run(["git clone %s %s" % (self.firehol_ipsets_git, self.repo_path)], shell=True, check=True)
+            run(["cd %s ; git checkout master" % self.repo_path], shell=True, check=True)
+            self.logger.info("Successfully cloned Firehol repo from remote origin")
+        except CalledProcessError:
+            self.logger.exception("CalledProcessError occurred")
 
     def fetch_diff(self):
-        self.logger.info("Fetching diff from remote origin")
+        SyncGit.logger.info("Fetching diff from remote origin")
         try:
             firehol_repo = git.cmd.Git(self.repo_path)
             firehol_repo.checkout("master")
-        except git.GitCommandError as e:
-            self.logger.exception("GitCommandError occurred")
-        try:
             firehol_repo.fetch("origin")
             diff_stdout = firehol_repo.execute(["git", "diff", "master", "origin/master"], True).split("\n")
             try:
                 diff = unidiff.PatchSet(diff_stdout)
-            except unidiff.UnidiffParseError as e:
+                firehol_repo.execute(["git", "reset", "--hard", "origin/master"])
+                firehol_repo.merge()
+                self.logger.info("Successfully fetched diff from remote origin")
+                return diff
+            except unidiff.UnidiffParseError:
                 self.logger.exception("UnidiffParseError occurred")
-            firehol_repo.execute(["git", "reset", "--hard", "origin/master"])
-            firehol_repo.merge()
-        except git.GitCommandError as e:
+        except git.GitCommandError:
             self.logger.exception("GitCommandError occurred")
-        self.logger.info("Successfully fetched diff from remote origin")
-        return diff
 
     def validate_feed(self, feed_file_path):
         unique_ips_count = None
@@ -143,17 +137,21 @@ if __name__ == "__main__":
     period = 3600 * int(SyncGit.sync_period_h)
     while True:
         SyncGit.logger.info("Started sync_git_repo()")
-        repo_path_exists = os.path.exists(SyncGit.repo_path)
-        if not repo_path_exists:
+        if not os.path.exists(SyncGit.repo_path):
             SyncGit.clone_from_remote()
             feed_files_path_list = SyncGit.get_files(SyncGit.repo_path)
-            try:
-                pool = Pool(SyncGit.get_cpu_count())
-                pool.map(sync_with_db_new, feed_files_path_list)
-                pool.close()
-                pool.join()
-            except Exception as e:
-                SyncGit.logger.exception("Error in multiprocessing occurred")
+            if feed_files_path_list:
+                SyncGit.logger.info("After cloning found %d new file(s)" % len(feed_files_path_list))
+                try:
+                    pool = Pool(SyncGit.get_cpu_count())
+                    pool.map(sync_with_db_new, feed_files_path_list)
+                    pool.close()
+                    pool.join()
+                    SyncGit.logger.info("Parallel feeds processing finished")
+                except Exception:
+                    SyncGit.logger.exception("Error in multiprocessing occurred")
+            else:
+                SyncGit.logger.warning("Local repository is empty")
         else:
             diff = SyncGit.fetch_diff()
             try:
@@ -165,8 +163,9 @@ if __name__ == "__main__":
                         pool.map(sync_with_db_new, new_feeds_path)
                         pool.close()
                         pool.join()
-                    except Exception as e:
+                    except Exception:
                         SyncGit.logger.exception("Error in multiprocessing occurred")
+                    SyncGit.logger.info("Parallel feeds processing finished")
                 if diff.modified_files:
                     SyncGit.logger.info("After fetching found %d modified file(s)" % len(diff.modified_files))
                     modified_feeds_serialized = [pickle.dumps(modified_files) for modified_files in diff.modified_files]
@@ -175,9 +174,10 @@ if __name__ == "__main__":
                         pool.map(sync_with_db_diff, modified_feeds_serialized)
                         pool.close()
                         pool.join()
-                    except Exception as e:
+                    except Exception:
                         SyncGit.logger.exception("Error in multiprocessing occurred")
-            except AttributeError as e:
+                    SyncGit.logger.info("Parallel feeds processing finished")
+            except AttributeError:
                 SyncGit.logger.exception("Diff data has an unrecognized structure")
         SyncGit.logger.info("Sleep for %d hour(s)" % (period / 3600))
         time.sleep(period)
