@@ -72,7 +72,5 @@ class General:
         for dictionary in dictionary_list:
             bunching_element = dictionary.pop(key, None)
             bunched_dict.setdefault(bunching_element, []).append(dictionary)
-        if bunched_dict:
-            return bunched_dict
-        else:
-            return
+        return bunched_dict
+
