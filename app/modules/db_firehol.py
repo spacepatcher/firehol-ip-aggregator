@@ -62,7 +62,8 @@ def db_search_data(net_list):
                 search_result.extend([dict(zip(search_result_item.keys(), search_result_item))
                                            for search_result_item in search_result_raw if search_result_raw])
             search_result_grouped = General.group_dict_by_key(search_result, "ip")
-            search_result_by_ip.update(search_result_grouped)
+            search_result_extended = General.extend_result_data(search_result_grouped, len(feed_tables))
+            search_result_by_ip.update(search_result_extended)
         return search_result_by_ip
     except Exception as e:
         General.logger.error("Error: {}".format(e))

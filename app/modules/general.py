@@ -74,3 +74,14 @@ class General:
             bunched_dict.setdefault(bunching_element, []).append(dictionary)
         return bunched_dict
 
+    def extend_result_data(self, dictionary, number_of_tables):
+        extended_dict = dict()
+        for key, value in dictionary.items():
+            extended_dict.setdefault(key, {})
+            extended_dict[key]["feeds_available"] = number_of_tables
+            extended_dict[key]["hits_count"] = len(value)
+            extended_dict[key]["categories"] = list(set([dict_item.get("category") for dict_item in dictionary[key]]))
+            extended_dict[key]["first_seen"] = sorted(list(set([dict_item.get("first_seen") for dict_item in dictionary[key]])))[0]
+            extended_dict[key]["last_added"] = sorted(list(set([dict_item.get("last_added") for dict_item in dictionary[key]])), reverse=True)[0]
+            extended_dict[key]["hits"] = dictionary.get(key, None)
+        return extended_dict
