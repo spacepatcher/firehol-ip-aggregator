@@ -1,88 +1,71 @@
-import traceback
-
-from modules.db_core import create_db, FeedTotal
-from modules.general import grouper
+from modules.db_core import FeedAlchemy
+from modules.general import General
+from sqlalchemy import exc
 from sqlalchemy.sql import func
+from sqlalchemy.dialects.postgresql import insert
 
 
-def add_column(engine, table_name, column):
-    sql = "ALTER TABLE {table_name} ADD column {column} BOOLEAN DEFAULT FALSE"\
-        .format(table_name=table_name, column=column)
-    engine.execute(sql)
-
-
-def get_columns(engine, table_name):
-    sql = "SELECT * FROM {table_name} LIMIT 0"\
-        .format(table_name=table_name)
-    columns = engine.execute(sql)._metadata.keys
-    return columns
-
-
-def add_record(db_session, table_name, ip, column):
-    sql = "INSERT INTO {table_name} (ip, last_added, {column}) VALUES ('{ip}', {last_added}, TRUE) ON CONFLICT (ip) DO UPDATE SET {column} = TRUE, last_added = {last_added}"\
-        .format(table_name=table_name, column=column, ip=ip, last_added=func.now())
-    db_session.execute(sql)
-
-
-def search_net(db_session, table_name, net):
-    sql = "SELECT * FROM {table_name} WHERE ip <<= '{net}'"\
-        .format(table_name=table_name, net=net)
-    result = db_session.execute(sql)
-    search_results = []
-    for row in result:
-        feed_name = []
-        for key in row.keys():
-            if row.get("key") and key != "id" and key != "ip" and key != "last_added":
-                feed_name.append(key)
-        data = {
-            "ip": row.get("ip"),
-            "last_added": row.get("last_added"),
-            "feeds": feed_name
-        }
-        search_results.append(data)
-    return search_results
+General = General()
+FeedAlchemy = FeedAlchemy()
 
 
 def db_add_data(data_to_add):
-    try:
-        db_session = create_db()
-    except Exception as e:
-        traceback.print_exc()
-        return "Error while db init {}".format(e)
-    try:
-        valid_column_name = data_to_add.get("feed_name").split(".")[0]
-        if valid_column_name not in get_columns(db_session, FeedTotal.__tablename__):
-            add_column(db_session, FeedTotal.__tablename__, valid_column_name)
+    feed_meta = data_to_add.get("feed_meta")
+    feed_table_name = "feed_" + data_to_add.get("feed_name")
+    db_session = FeedAlchemy.get_db_session()
+    while True:
+        try:
+            meta_table = FeedAlchemy.get_meta_table_object()
+            insert_query = insert(meta_table).values(feed_meta)\
+                .on_conflict_do_update(index_elements=["feed_name"], set_=dict(maintainer=feed_meta.get("maintainer"),
+                                                                               maintainer_url=feed_meta.get("maintainer_url"),
+                                                                               list_source_url=feed_meta.get("list_source_url"),
+                                                                               source_file_date=feed_meta.get("source_file_date"),
+                                                                               category=feed_meta.get("category"),
+                                                                               entries=feed_meta.get("entries")))
+            db_session.execute(insert_query)
             db_session.commit()
-        for ip_group in grouper(n=100000, iterable=data_to_add.get("added_ip")):
+            break
+        except exc.IntegrityError as e:
+            General.logger.warning("Warning: {}".format(e))
+            General.logger.info("Attempt to update meta table will be made in the next iteration of an infinite loop")
+            db_session.rollback()
+    try:
+        feed_table = FeedAlchemy.get_feed_table_object(feed_table_name)
+        for ip_group in General.group_by(n=100000, iterable=data_to_add.get("added_ip")):
             for ip in ip_group:
-                add_record(db_session, FeedTotal.__tablename__, ip, valid_column_name)
+                insert_query = insert(feed_table).values(ip=ip, first_seen=func.now(), feed_name=data_to_add.get("feed_name"))\
+                    .on_conflict_do_update(index_elements=["ip"], set_=dict(last_added=func.now()))
+                db_session.execute(insert_query)
             db_session.commit()
-        return "Successfully"
     except Exception as e:
-        traceback.print_exc()
-        print("Error: {}".format(e))
+        General.logger.error("Error: {}".format(e))
+        General.logger.exception("Can't commit to DB. Rolling back changes...")
         db_session.rollback()
-        raise Exception("Can't commit to DB. Rolling back changes..")
     finally:
         db_session.close()
 
 
-def db_search(net_list):
-    search_result_total = []
+def db_search_data(net_list):
+    search_result_by_ip = dict()
+    db_session = FeedAlchemy.get_db_session()
     try:
-        db_session = create_db()
-    except Exception as e:
-        traceback.print_exc()
-        return "Error while db init {}".format(e)
-    try:
+        FeedAlchemy.metadata.reflect(bind=FeedAlchemy.engine)
+        meta_table = FeedAlchemy.metadata.tables[FeedAlchemy.feeds_meta_table]
+        feed_tables = [table for table in reversed(FeedAlchemy.metadata.sorted_tables) if "feed_" in table.name]
         for net in net_list:
-            search_net_result = search_net(db_session, FeedTotal.__tablename__, net)
-            if search_net_result:
-                search_result_total.extend(search_net_result)
+            search_result = list()
+            for feed_table in feed_tables:
+                search_query = "SELECT * FROM {feed_table_name} f, {meta_table_name} m WHERE f.feed_name = m.feed_name AND f.ip<<='{net}'"\
+                    .format(feed_table_name=feed_table.name, meta_table_name=meta_table.name, net=net)
+                search_result_raw = db_session.execute(search_query).fetchall()
+                search_result.extend([dict(zip(search_result_item.keys(), search_result_item))
+                                           for search_result_item in search_result_raw if search_result_raw])
+            search_result_grouped = General.group_dict_by_key(search_result, "ip")
+            search_result_by_ip.update(search_result_grouped)
+        return search_result_by_ip
     except Exception as e:
-        traceback.print_exc()
-        return "Error: {}".format(e)
+        General.logger.error("Error: {}".format(e))
+        General.logger.exception("Error while searching occurred")
     finally:
         db_session.close()
-        return search_result_total
