@@ -60,7 +60,8 @@ Here is an example of the result of the request ip using the client (`python cli
                 "maintainer": "hpHosts", 
                 "maintainer_url": "http://hosts-file.net/", 
                 "source_file_date": "Sun Oct 22 10:31:51 UTC 2017"
-            }
+            },
+            "request_time": "2017-10-23T18:42:23.853275+03:00"
         ], 
         "hits_count": 4, 
         "last_added": "2017-10-23T15:12:52.563252+00:00"
