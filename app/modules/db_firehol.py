@@ -1,3 +1,5 @@
+import pytz
+from datetime import datetime
 from modules.db_core import FeedAlchemy
 from modules.general import General
 from sqlalchemy import exc
@@ -47,6 +49,7 @@ def db_add_data(data_to_add):
 
 
 def db_search_data(net_list):
+    request_time = pytz.utc.localize(datetime.utcnow()).astimezone(pytz.timezone("Europe/Moscow")).isoformat()
     search_result_by_ip = dict()
     db_session = FeedAlchemy.get_db_session()
     try:
@@ -64,6 +67,8 @@ def db_search_data(net_list):
             search_result_grouped = General.group_dict_by_key(search_result, "ip")
             search_result_extended = General.extend_result_data(search_result_grouped, len(feed_tables))
             search_result_by_ip.update(search_result_extended)
+        if search_result_by_ip:
+            search_result_by_ip.update({"request_time": request_time})
         return search_result_by_ip
     except Exception as e:
         General.logger.error("Error: {}".format(e))

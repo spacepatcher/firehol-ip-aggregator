@@ -8,6 +8,7 @@ idna==2.6
 netaddr==0.7.19
 psycopg2==2.7.3.1
 python-mimeparse==1.6.0
+pytz==2017.2
 requests==2.18.4
 six==1.11.0
 smmap2==2.0.3
