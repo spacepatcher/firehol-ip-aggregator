@@ -50,7 +50,8 @@ def db_add_data(data_to_add):
 
 def db_search_data(net_list):
     request_time = pytz.utc.localize(datetime.utcnow()).astimezone(pytz.timezone("Europe/Moscow")).isoformat()
-    search_result_by_ip = dict()
+    search_result_total = dict()
+    search_result_total_extended = dict()
     db_session = FeedAlchemy.get_db_session()
     try:
         FeedAlchemy.metadata.reflect(bind=FeedAlchemy.engine)
@@ -65,11 +66,13 @@ def db_search_data(net_list):
                 search_result.extend([dict(zip(search_result_item.keys(), search_result_item))
                                            for search_result_item in search_result_raw if search_result_raw])
             search_result_grouped = General.group_dict_by_key(search_result, "ip")
-            search_result_extended = General.extend_result_data(search_result_grouped, len(feed_tables))
-            search_result_by_ip.update(search_result_extended)
-        if search_result_by_ip:
-            search_result_by_ip.update({"request_time": request_time})
-        return search_result_by_ip
+            search_result_extended = General.extend_result_data(search_result_grouped)
+            search_result_total.update(search_result_extended)
+        if search_result_total:
+            search_result_total_extended.setdefault("results", search_result_total)
+            search_result_total_extended.update({"request_time": request_time})
+            search_result_total_extended.update({"feeds_available": len(feed_tables)})
+        return search_result_total_extended
     except Exception as e:
         General.logger.error("Error: {}".format(e))
         General.logger.exception("Error while searching occurred")
