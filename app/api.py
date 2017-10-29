@@ -8,11 +8,14 @@ General = General()
 
 @hug.post("/search")
 def search_api(body):
-    input_list = body.split(",")
-    for input_item in input_list:
-        if General.validate_input_item(input_item):
-            pass
-        else:
-            return "Data validation error in '%s'." % input_item
-    net_list = list(set(input_list))
-    return db_search_data(net_list)
+    try:
+        request_list = body.split(",")
+        for input_item in request_list:
+            if General.validate_input_item(input_item):
+                pass
+            else:
+                return "Data validation error in '%s'." % input_item
+        return db_search_data(list(set(request_list)))
+    except AttributeError:
+        return "Got an empty request"
+

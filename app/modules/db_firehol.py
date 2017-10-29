@@ -50,31 +50,30 @@ def db_add_data(data_to_add):
 
 def db_search_data(net_list):
     request_time = pytz.utc.localize(datetime.utcnow()).astimezone(pytz.timezone("Europe/Moscow")).isoformat()
-    search_result_total = dict()
-    search_result_total_extended = dict()
+    feed_tables = list()
+    results_total = dict()
+    results_total_extended = dict()
     db_session = FeedAlchemy.get_db_session()
     try:
         FeedAlchemy.metadata.reflect(bind=FeedAlchemy.engine)
         meta_table = FeedAlchemy.metadata.tables[FeedAlchemy.feeds_meta_table]
         feed_tables = [table for table in reversed(FeedAlchemy.metadata.sorted_tables) if "feed_" in table.name]
         for net in net_list:
-            search_result = list()
+            results = list()
             for feed_table in feed_tables:
-                search_query = "SELECT * FROM {feed_table_name} f, {meta_table_name} m WHERE f.feed_name = m.feed_name AND f.ip<<='{net}'"\
+                sql_query = "SELECT * FROM {feed_table_name} f, {meta_table_name} m WHERE f.feed_name = m.feed_name AND f.ip<<='{net}'"\
                     .format(feed_table_name=feed_table.name, meta_table_name=meta_table.name, net=net)
-                search_result_raw = db_session.execute(search_query).fetchall()
-                search_result.extend([dict(zip(search_result_item.keys(), search_result_item))
-                                           for search_result_item in search_result_raw if search_result_raw])
-            search_result_grouped = General.group_dict_by_key(search_result, "ip")
-            search_result_extended = General.extend_result_data(search_result_grouped)
-            search_result_total.update(search_result_extended)
-        if search_result_total:
-            search_result_total_extended.setdefault("results", search_result_total)
-            search_result_total_extended.update({"request_time": request_time})
-            search_result_total_extended.update({"feeds_available": len(feed_tables)})
-        return search_result_total_extended
+                raw_results = db_session.execute(sql_query).fetchall()
+                results.extend([dict(zip(item.keys(), item)) for item in raw_results if raw_results])
+            results_grouped = General.group_dict_by_key(results, "ip")
+            results_grouped_extended = General.extend_result_data(results_grouped)
+            results_total.update(results_grouped_extended)
     except Exception as e:
         General.logger.error("Error: {}".format(e))
         General.logger.exception("Error while searching occurred")
     finally:
         db_session.close()
+    results_total_extended.setdefault("results", results_total)
+    results_total_extended.update({"request_time": request_time, "feeds_available": len(feed_tables)})
+    return results_total_extended
+
