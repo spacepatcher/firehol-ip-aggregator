@@ -53,4 +53,4 @@ class FeedAlchemy(General):
             Session = sessionmaker(bind=cursor)
             return Session()
         except Exception:
-            self.logger.exception("Error in creation DB session")
+            self.logger.exception("Error in database session creation occurred")

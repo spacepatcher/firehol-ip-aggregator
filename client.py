@@ -26,7 +26,8 @@ def validate_input_item(input):
         return True
 
 
-def request_api(url, payload):
+def api_search(payload):
+    url = DB_SERVER + "/search"
     try:
         r = requests.post(url, data=payload, verify=False)
     except requests.exceptions.ConnectionError as e:
@@ -40,11 +41,6 @@ def request_api(url, payload):
         print("Something went wrong. Server down?")
         print("Status code: {}".format(r.status_code))
         sys.exit(1)
-
-
-def search(items_list):
-    url = DB_SERVER + "/search"
-    return request_api(url, ",".join(items_list))
 
 
 def output_to_file(file_name, output_total):
@@ -73,7 +69,7 @@ Postgres IP Feed API server: %s''' % (DB_SERVER))
             else:
                 print("Data validation error in '%s'." % item)
                 sys.exit(1)
-        search_results = search(args.stdin.split(","))
+        search_results = api_search(args.stdin)
     elif args.file:
         net_lines = read_file(args.file)
         line_number = 0
@@ -84,7 +80,7 @@ Postgres IP Feed API server: %s''' % (DB_SERVER))
             else:
                 print("Data validation error at line number %s in '%s'." % (line_number, net_item))
                 sys.exit(1)
-        search_results = search(net_lines)
+        search_results = api_search(",".join(net_lines))
     else:
         print("You must choose the input data format. Exiting...")
         sys.exit(1)
