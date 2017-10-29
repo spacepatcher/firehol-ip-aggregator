@@ -1,6 +1,13 @@
 # Firehol-IP-Aggregator
 Аpplication for keeping reputation feeds from https://github.com/firehol/blocklist-ipsets (.netset and .ipset only) data in relational database PostgreSQL with including historical data
 
+**Start application**
+
+To start the collection module and the API server locally, just type:
+```
+sudo docker-compose up -d
+```
+
 **Important files**
 
 `client.py` - Simple python script for convenient interaction with FIA API.
@@ -64,10 +71,15 @@ Here is an example of the result of the request ip using the client:
     }
 }
 ```
-
-To start the collection module and the API server locally, just type:
+If the observable is not found in the application database, the response will look like this:
 ```
-sudo docker-compose up -d
+{
+    "feeds_available": 136,
+    "request_time": "2017-10-29T18:15:10.807654+03:00",
+    "results": {}
+}
 ```
 
-Thx @ilyaglow for suggestions!
+**Thanks**
+
+Thanks @ilyaglow for suggestions!
