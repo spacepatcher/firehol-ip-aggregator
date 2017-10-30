@@ -10,9 +10,8 @@ sudo docker-compose up -d
 
 **Important files**
 
-`client.py` - Simple python script for convenient interaction with FIA API.
-
-`app/conf/config.json` - The main configuration file with several parameters. `"unique_ips_limit"` is the most interesting one, with his help you can limit the set of Firehol feeds based on the number of unique IP addresses.
+* `client.py` - simple python script for convenient interaction with Firehol-IP-Aggregator API.
+* `app/conf/config.json` - the main configuration file with several parameters. `"unique_ips_limit"` is the most interesting one, with his help you can limit the set of Firehol feeds based on the number of unique IP addresses.
 
 **Example usage**
 
