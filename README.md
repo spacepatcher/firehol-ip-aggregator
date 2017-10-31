@@ -1,5 +1,9 @@
 # Firehol-IP-Aggregator
-Аpplication for keeping reputation feeds from https://github.com/firehol/blocklist-ipsets (.netset and .ipset only) data in relational database PostgreSQL with including historical data
+Аpplication for keeping reputation feeds from https://github.com/firehol/blocklist-ipsets (.netset and .ipset) data in relational database PostgreSQL with including historical data. 
+
+Some features of keeping and processing data:
+* Reputation data is never deleted from the application database
+* New data is written to existing data with a timestamp update
 
 **Start application**
 
@@ -78,7 +82,8 @@ If the observable is not found in the application database, the response will lo
     "results": {}
 }
 ```
+Also you can make requests by using python requests library.
 
 **Thanks**
 
-Thanks @ilyaglow for suggestions!
+Thanks @ilyaglow for contributing!
