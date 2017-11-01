@@ -17,5 +17,6 @@ services:
       - 8000:8000
     volumes:
       - ./docker-persistence/app-data/git-data:/app/git-data
+      - ./docker-persistence/config.json:/app/conf/config.json
     depends_on:
       - postgres
