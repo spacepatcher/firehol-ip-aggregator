@@ -25,6 +25,8 @@ Application is able to get search requests in IP or CIDR format, also in mixed l
 Here is an example of the result of the request ip using the client:
 ```
 {
+    "blacklisted_count": 1,
+    "requested_count": 1,
     "feeds_available": 136,
     "request_time": "2017-10-25T16:34:27.703801+03:00",
     "results": {
@@ -77,6 +79,8 @@ Here is an example of the result of the request ip using the client:
 If the observable is not found in the application database, the response will look like this:
 ```
 {
+    "blacklisted_count": 0,
+    "requested_count": 2,
     "feeds_available": 136,
     "request_time": "2017-10-29T18:15:10.807654+03:00",
     "results": {}
