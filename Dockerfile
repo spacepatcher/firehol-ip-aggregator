@@ -4,7 +4,7 @@ LABEL maintainer "contact@ilyaglotov.com"
 LABEL author "@spacepatcher"
 LABEL repository "https://github.com/spacepatcher/Firehol-IP-Aggregator"
 
-COPY app /app
+COPY app/requirements.txt /app/
 
 RUN apk update \
   && apk add git \
@@ -17,6 +17,8 @@ RUN apk update \
   && apk del .deps \
   && rm -rf /root/.cache/pip \
   && rm -rf /var/cache/apk
+
+COPY app /app
 
 RUN adduser -D app \
   && chown -R app /app
