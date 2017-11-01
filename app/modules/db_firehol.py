@@ -1,4 +1,5 @@
 import pytz
+import netaddr
 from datetime import datetime
 from modules.db_core import FeedAlchemy
 from modules.general import General
@@ -50,6 +51,8 @@ def db_add_data(data_to_add):
 
 def db_search_data(net_list):
     request_time = pytz.utc.localize(datetime.utcnow()).astimezone(pytz.timezone("Europe/Moscow")).isoformat()
+    requested_count = 0
+    blacklisted_count = 0
     feed_tables = list()
     results_total = dict()
     results_total_extended = dict()
@@ -60,12 +63,14 @@ def db_search_data(net_list):
         feed_tables = [table for table in reversed(FeedAlchemy.metadata.sorted_tables) if "feed_" in table.name]
         for net in net_list:
             results = list()
+            requested_count += len(netaddr.IPNetwork(net))
             for feed_table in feed_tables:
                 sql_query = "SELECT * FROM {feed_table_name} f, {meta_table_name} m WHERE f.feed_name = m.feed_name AND f.ip<<='{net}'"\
                     .format(feed_table_name=feed_table.name, meta_table_name=meta_table.name, net=net)
                 raw_results = db_session.execute(sql_query).fetchall()
                 results.extend([dict(zip(item.keys(), item)) for item in raw_results if raw_results])
             results_grouped = General.group_dict_by_key(results, "ip")
+            blacklisted_count += len(results_grouped.keys())
             results_grouped_extended = General.extend_result_data(results_grouped)
             results_total.update(results_grouped_extended)
     except Exception as e:
@@ -74,6 +79,7 @@ def db_search_data(net_list):
     finally:
         db_session.close()
     results_total_extended.setdefault("results", results_total)
-    results_total_extended.update({"request_time": request_time, "feeds_available": len(feed_tables)})
+    results_total_extended.update({"request_time": request_time, "feeds_available": len(feed_tables),
+                                   "requested_count": requested_count, "blacklisted_count": blacklisted_count})
     return results_total_extended
 
