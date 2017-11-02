@@ -140,7 +140,8 @@ app/log/*
 
 
 # Docker persistence data
-docker-persistence/app-data/*
+docker-persistence/app-data/git-data/*
+docker-persistence/app-data/log/*
 docker-persistence/postgres/*
 
 

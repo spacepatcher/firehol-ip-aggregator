@@ -10,13 +10,14 @@ services:
     volumes:
       - ./docker-persistence/postgres:/var/lib/postgresql/data
 
-  firehol-ip-aggregator:
+  app:
     build: .
     restart: always
     ports:
       - 8000:8000
     volumes:
       - ./docker-persistence/app-data/git-data:/app/git-data
+      - ./docker-persistence/app-data/log:/app/log
       - ./docker-persistence/config.json:/app/conf/config.json
     depends_on:
       - postgres
