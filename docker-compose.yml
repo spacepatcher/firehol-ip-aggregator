@@ -1,4 +1,4 @@
-version: "3.0"
+version: "2.0"
 
 services:
   postgres:
@@ -11,13 +11,12 @@ services:
       - ./docker-persistence/postgres:/var/lib/postgresql/data
 
   firehol-ip-aggregator:
-    image: python:3.6.2-alpine3.6
+    build: .
     restart: always
     ports:
       - 8000:8000
     volumes:
-      - ./app:/app
       - ./docker-persistence/app-data/git-data:/app/git-data
-    entrypoint: /app/entrypoint.sh hug -f api.py
+      - ./docker-persistence/config.json:/app/conf/config.json
     depends_on:
       - postgres
