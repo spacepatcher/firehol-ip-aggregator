@@ -15,8 +15,8 @@ echo 'sudo rm -rf app/git-data/firehol'
 rm -rf app/git-data/firehol
 echo 'sudo rm -rf app/__pycache__'
 rm -rf app/__pycache__
-echo 'sudo truncate -s 0 app/log/run.log'
-truncate -s 0 app/log/run.log
+echo 'sudo rm -rf app/log/run.log'
+rm -rf app/log/run.log
 
 
 echo 'sudo docker-compose up -d'
