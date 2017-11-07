@@ -26,7 +26,8 @@ class Alchemy(General):
             Column("first_seen", DateTime(timezone=True), server_default=func.now()),
             Column("last_added", DateTime(timezone=True), server_default=func.now()),
             Column("last_removed", DateTime(timezone=True), nullable=True),
-            Column("feed_name", TEXT, ForeignKey("feeds_meta.feed_name"))
+            Column("feed_name", TEXT, ForeignKey("feeds_meta.feed_name")),
+            extend_existing=True
         )
         feed_table.create(self.engine, checkfirst=True)
         return feed_table

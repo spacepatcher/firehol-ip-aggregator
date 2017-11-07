@@ -114,7 +114,7 @@ class SyncGit(General):
         for net_item in added_net_items:
             added_ip.extend(self.normalize_net4(net_item.group()))
         for ip_item in removed_ip_items:
-            removed_ip.append(ip_item)
+            removed_ip.append(ip_item.group())
         for net_item in removed_net_items:
             removed_ip.extend(self.normalize_net4(net_item.group()))
         feed_diff_data = {
