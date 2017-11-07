@@ -1,18 +1,20 @@
 from sqlalchemy import MetaData, Table, Column, DateTime, ForeignKey
 from sqlalchemy import create_engine, exc
-from sqlalchemy.dialects import postgresql
-from sqlalchemy.pool import NullPool
 from sqlalchemy_utils import database_exists, create_database
+from sqlalchemy.pool import NullPool
 from sqlalchemy.sql import func
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.dialects.postgresql import INET, TEXT
+
 from modules.general import General
 
 
-class FeedAlchemy(General):
+class Alchemy(General):
     def __init__(self):
         super().__init__()
         self.feeds_meta_table = "feeds_meta"
-        self.connection_string = "postgresql://%s:%s@%s:5432/%s" % (self.database_user, self.database_password, self.server_address, self.database_name)
+        self.connection_string = "postgresql://%s:%s@%s:5432/%s" \
+                                 % (self.database_user, self.database_password, self.server_address, self.database_name)
         self.engine = create_engine(self.connection_string, poolclass=NullPool)
         self.metadata = MetaData()
 
@@ -20,10 +22,11 @@ class FeedAlchemy(General):
         if not database_exists(self.engine.url):
             create_database(self.engine.url)
         feed_table = Table(table_name, self.metadata,
-            Column("ip", postgresql.INET, primary_key=True),
+            Column("ip", INET, primary_key=True),
             Column("first_seen", DateTime(timezone=True), server_default=func.now()),
             Column("last_added", DateTime(timezone=True), server_default=func.now()),
-            Column("feed_name", postgresql.TEXT, ForeignKey("feeds_meta.feed_name"))
+            Column("last_removed", DateTime(timezone=True), nullable=True),
+            Column("feed_name", TEXT, ForeignKey("feeds_meta.feed_name"))
         )
         feed_table.create(self.engine, checkfirst=True)
         return feed_table
@@ -32,13 +35,13 @@ class FeedAlchemy(General):
         if not database_exists(self.engine.url):
             create_database(self.engine.url)
         meta_table = Table(self.feeds_meta_table, self.metadata,
-            Column("feed_name", postgresql.TEXT, primary_key=True),
-            Column("maintainer", postgresql.TEXT),
-            Column("maintainer_url", postgresql.TEXT),
-            Column("list_source_url", postgresql.TEXT),
-            Column("source_file_date", postgresql.TEXT),
-            Column("category", postgresql.TEXT),
-            Column("entries", postgresql.TEXT),
+            Column("feed_name", TEXT, primary_key=True),
+            Column("maintainer", TEXT),
+            Column("maintainer_url", TEXT),
+            Column("list_source_url", TEXT),
+            Column("source_file_date", TEXT),
+            Column("category", TEXT),
+            Column("entries", TEXT),
             extend_existing=True
         )
         try:
