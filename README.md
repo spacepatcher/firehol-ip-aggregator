@@ -1,13 +1,13 @@
 # Firehol-IP-Aggregator
-Аpplication for keeping reputation feeds from https://github.com/firehol/blocklist-ipsets (.netset and .ipset) data in relational database PostgreSQL with including historical data. 
+Аpplication for keeping reputation feeds from https://github.com/firehol/blocklist-ipsets (.netset and .ipset only and not time sliced lists) in PostgreSQL database with including historical data. 
 
 Some features of keeping and processing data:
-* Reputation data is never deleted from the application database
-* New data is written to existing data with a timestamp update
+* New data is written to existing data with `last_added` field update.
+* Data deleted from reputation feed is not deleted from the application database. For such data, `last_removed` field is updated.
 
 **Start application**
 
-To start the collection module and the API server locally, just type:
+To start the collection module and the API server, just type:
 ```
 sudo docker-compose up -d
 ```
@@ -42,6 +42,7 @@ Here is an example of the result of the request ip using the client:
                     "feed_name": "chaosreigns_iprep50",
                     "first_seen": "2017-10-24T15:07:25.495289+00:00",
                     "last_added": "2017-10-24T15:07:25.495289+00:00",
+                    "last_removed": null,
                     "list_source_url": "http://www.chaosreigns.com/iprep/iprep.txt",
                     "maintainer": "ChaosReigns.com",
                     "maintainer_url": "http://www.chaosreigns.com/iprep",
@@ -53,6 +54,7 @@ Here is an example of the result of the request ip using the client:
                     "feed_name": "chaosreigns_iprep100",
                     "first_seen": "2017-10-24T15:07:47.495608+00:00",
                     "last_added": "2017-10-24T15:07:47.495608+00:00",
+                    "last_removed": null,
                     "list_source_url": "http://www.chaosreigns.com/iprep/iprep.txt",
                     "maintainer": "ChaosReigns.com",
                     "maintainer_url": "http://www.chaosreigns.com/iprep",
@@ -64,6 +66,7 @@ Here is an example of the result of the request ip using the client:
                     "feed_name": "chaosreigns_iprep0",
                     "first_seen": "2017-10-24T15:08:11.784491+00:00",
                     "last_added": "2017-10-24T15:08:11.784491+00:00",
+                    "last_removed": null,
                     "list_source_url": "http://www.chaosreigns.com/iprep/iprep.txt",
                     "maintainer": "ChaosReigns.com",
                     "maintainer_url": "http://www.chaosreigns.com/iprep",

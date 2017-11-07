@@ -1,8 +1,10 @@
 import hug
 
-from modules.db_firehol import db_search_data
+from modules.db_feeds import FeedsAlchemy
 from modules.general import General
 
+
+FeedsAlchemy = FeedsAlchemy()
 General = General()
 
 
@@ -15,7 +17,6 @@ def search_api(body):
                 pass
             else:
                 return "Data validation error in '%s'." % input_item
-        return db_search_data(list(set(request_list)))
+        return FeedsAlchemy.db_search_data(list(set(request_list)))
     except AttributeError:
         return "Got an empty request"
-
