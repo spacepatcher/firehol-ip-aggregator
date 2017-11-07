@@ -28,8 +28,7 @@ class FeedsAlchemy(Alchemy):
                 break
             except exc.IntegrityError as e:
                 self.logger.warning("Warning: {}".format(e))
-                self.logger.info(
-                    "Attempt to update meta table will be made in the next iteration of an infinite loop")
+                self.logger.info("Attempt to update meta table will be made in the next iteration of an infinite loop")
                 db_session.rollback()
 
     def db_update_added(self, feed_data):
@@ -39,8 +38,7 @@ class FeedsAlchemy(Alchemy):
             feed_table = self.get_feed_table_object(feed_table_name)
             for ip_group in self.group_by(n=100000, iterable=feed_data.get("added_ip")):
                 for ip in ip_group:
-                    insert_query = insert(feed_table).values(ip=ip, first_seen=func.now(),
-                                                             feed_name=feed_data.get("feed_name")) \
+                    insert_query = insert(feed_table).values(ip=ip, first_seen=func.now(), feed_name=feed_data.get("feed_name")) \
                         .on_conflict_do_update(index_elements=["ip"], set_=dict(last_added=func.now()))
                     db_session.execute(insert_query)
                 db_session.commit()
