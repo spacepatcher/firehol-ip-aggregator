@@ -19,5 +19,5 @@ echo 'sudo rm -rf app/log/run.log'
 rm -rf app/log/run.log
 
 
-echo 'sudo docker-compose up -d'
-docker-compose up -d
+echo 'sudo docker-compose up -d --build'
+docker-compose up -d --build
