@@ -1,7 +1,7 @@
 import pytz
 import netaddr
 from datetime import datetime
-from sqlalchemy import exc, update
+from sqlalchemy import exc
 from sqlalchemy.sql import func
 from sqlalchemy.dialects.postgresql import insert
 
@@ -53,11 +53,11 @@ class FeedsAlchemy(Alchemy):
         db_session = self.get_db_session()
         feed_table_name = "feed_" + feed_data.get("feed_name")
         try:
-            feed_table = self.get_feed_table_object(feed_table_name)
-            for ip_group in self.group_by(n=100000, iterable=feed_data.get("removed_ip")):
-                for ip in ip_group:
-                    update_query = update(feed_table).where(feed_table.c.ip == ip).values(last_removed=func.now())
-                    db_session.execute(update_query)
+            for items_group in self.group_by(n=100000, iterable=feed_data.get("removed_items")):
+                for item in items_group:
+                    sql_query = "UPDATE {feed_table_name} SET last_removed = '{last_removed}' where ip <<= '{item}'"\
+                        .format(feed_table_name=feed_table_name, last_removed=func.now(), item=item)
+                    db_session.execute(sql_query)
                 db_session.commit()
         except Exception as e:
             self.logger.error("Error: {}".format(e))
