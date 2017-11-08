@@ -85,25 +85,26 @@ class SyncGit(General):
         return meta
 
     def parse_feed_file(self, feed_path):
-        new_ip = list()
-        new_net = list()
+        added_ip = list()
         meta = self.get_meta_info(feed_path)
         data_strings = self.read_file(feed_path)
         for index, data_string in enumerate(data_strings):
-            if self.ip_re.search(data_string):
-                new_ip.append(self.ip_re.search(data_string).group())
-            elif self.net_re.search(data_string):
-                new_net.extend(self.normalize_net4(self.net_re.search(data_string).group()))
+            ip_items = self.ip_re.search(data_string)
+            net_items = self.net_re.search(data_string)
+            if ip_items:
+                added_ip.append(ip_items.group())
+            elif net_items:
+                added_ip.extend(self.normalize_net4(net_items.group()))
         feed_data = {
             "feed_name": meta.get("feed_name"),
-            "added_ip": new_ip + new_net,
+            "added_ip": added_ip,
             "feed_meta": meta
         }
         return feed_data
 
     def get_diff_data(self, diff_data, modified_feed_path):
         added_ip = list()
-        removed_ip = list()
+        removed_items = list()
         meta = self.get_meta_info(modified_feed_path)
         added_ip_items = self.added_ip_re.finditer(str(diff_data))
         added_net_items = self.added_net_re.finditer(str(diff_data))
@@ -114,13 +115,13 @@ class SyncGit(General):
         for net_item in added_net_items:
             added_ip.extend(self.normalize_net4(net_item.group()))
         for ip_item in removed_ip_items:
-            removed_ip.append(ip_item.group())
+            removed_items.append(ip_item.group())
         for net_item in removed_net_items:
-            removed_ip.extend(self.normalize_net4(net_item.group()))
+            removed_items.append(net_item.group())
         feed_diff_data = {
             "feed_name": meta.get("feed_name"),
             "added_ip": added_ip,
-            "removed_ip": removed_ip,
+            "removed_items": removed_items,
             "feed_meta": meta
         }
         return feed_diff_data
@@ -133,7 +134,8 @@ def sync_with_db_new(feed_path):
     if SyncGit.validate_feed(feed_path):
         feed_data = SyncGit.parse_feed_file(feed_path)
         if feed_data.get("added_ip"):
-            SyncGit.logger.info("Found %d new data item(s) in new file %s" % (len(feed_data.get("added_ip")), feed_path))
+            SyncGit.logger.info("Found %d new IP(s) in new file %s"
+                                % (len(feed_data.get("added_ip")), feed_path))
             FeedsAlchemy.db_update_metatable(feed_data)
             FeedsAlchemy.db_update_added(feed_data)
 
@@ -143,9 +145,9 @@ def sync_with_db_diff(diff_serialized):
     modified_feed_path = "%s/%s" % (SyncGit.repo_path, diff.target_file[2:])
     if SyncGit.validate_feed(modified_feed_path):
         feed_diff_data = SyncGit.get_diff_data(diff, modified_feed_path)
-        if feed_diff_data.get("added_ip") or feed_diff_data.get("removed_ip"):
-            SyncGit.logger.info("Found %d new data item(s) and %d removed data item(s) in diff for file %s"
-                                % (len(feed_diff_data.get("added_ip")), len(feed_diff_data.get("removed_ip")), modified_feed_path))
+        if feed_diff_data.get("added_ip") or feed_diff_data.get("removed_items"):
+            SyncGit.logger.info("Found %d new IP(s) and %d removed data item(s) in diff for file %s"
+                                % (len(feed_diff_data.get("added_ip")), len(feed_diff_data.get("removed_items")), modified_feed_path))
             FeedsAlchemy.db_update_metatable(feed_diff_data)
             FeedsAlchemy.db_update_added(feed_diff_data)
             FeedsAlchemy.db_update_removed(feed_diff_data)
