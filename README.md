@@ -20,61 +20,62 @@ sudo docker-compose up -d
 **Example usage**
 
 Application is able to get search requests in IP or CIDR format, also in mixed list of both data types. To search, run the command:
-`python client.py -s 8.8.8.8` 
+`python client.py -s 212.92.122.66` 
 
 Here is an example of the result of the request ip using the client:
 ```
 {
     "blacklisted_count": 1,
-    "requested_count": 1,
-    "feeds_available": 136,
-    "request_time": "2017-10-25T16:34:27.703801+03:00",
+	"feeds_available": 151, 
+    "request_time": "2017-12-08T17:59:56.576402+03:00", 
+    "requested_count": 1, 
     "results": {
-        "8.7.42.33": {
+        "212.92.122.66": {
             "categories": [
-                "spam"
-            ],
-            "first_seen": "2017-10-24T15:07:25.495289+00:00",
+                "reputation", 
+                "attacks"
+            ], 
+            "first_seen": "2017-12-05T12:15:30.436526+00:00", 
             "hits": [
                 {
-                    "category": "spam",
-                    "entries": "5323 unique IPs",
-                    "feed_name": "chaosreigns_iprep50",
-                    "first_seen": "2017-10-24T15:07:25.495289+00:00",
-                    "last_added": "2017-10-24T15:07:25.495289+00:00",
-                    "last_removed": null,
-                    "list_source_url": "http://www.chaosreigns.com/iprep/iprep.txt",
-                    "maintainer": "ChaosReigns.com",
-                    "maintainer_url": "http://www.chaosreigns.com/iprep",
-                    "source_file_date": "Fri Jun 17 10:01:27 UTC 2016"
-                },
+                    "category": "attacks", 
+                    "entries": "198 unique IPs", 
+                    "feed_name": "urandomusto_unspecified", 
+                    "first_seen": "2017-12-05T12:15:30.436526+00:00", 
+                    "last_added": "2017-12-05T12:15:30.436526+00:00", 
+                    "last_removed": "2017-12-07T12:24:06.489593+00:00", 
+                    "list_source_url": "http://urandom.us.to/report.php?ip=&info=&tag=unspecified&out=txt&submit=go", 
+                    "maintainer": "urandom.us.to", 
+                    "maintainer_url": "http://urandom.us.to/", 
+                    "source_file_date": "Fri Dec  8 10:02:15 UTC 2017", 
+                    "timeline": [
+                        {
+                            "added": "2017-12-05T12:15:30.436526", 
+                            "removed": "2017-12-07T12:24:06.489593"
+                        }
+                    ]
+                }, 
                 {
-                    "category": "spam",
-                    "entries": "5323 unique IPs",
-                    "feed_name": "chaosreigns_iprep100",
-                    "first_seen": "2017-10-24T15:07:47.495608+00:00",
-                    "last_added": "2017-10-24T15:07:47.495608+00:00",
-                    "last_removed": null,
-                    "list_source_url": "http://www.chaosreigns.com/iprep/iprep.txt",
-                    "maintainer": "ChaosReigns.com",
-                    "maintainer_url": "http://www.chaosreigns.com/iprep",
-                    "source_file_date": "Fri Jun 17 10:01:27 UTC 2016"
-                },
-                {
-                    "category": "spam",
-                    "entries": "5323 unique IPs",
-                    "feed_name": "chaosreigns_iprep0",
-                    "first_seen": "2017-10-24T15:08:11.784491+00:00",
-                    "last_added": "2017-10-24T15:08:11.784491+00:00",
-                    "last_removed": null,
-                    "list_source_url": "http://www.chaosreigns.com/iprep/iprep.txt",
-                    "maintainer": "ChaosReigns.com",
-                    "maintainer_url": "http://www.chaosreigns.com/iprep",
-                    "source_file_date": "Fri Jun 17 10:01:27 UTC 2016"
+                    "category": "reputation", 
+                    "entries": "93 unique IPs", 
+                    "feed_name": "bds_atif", 
+                    "first_seen": "2017-12-05T12:15:53.183365+00:00", 
+                    "last_added": "2017-12-05T12:15:53.183365+00:00", 
+                    "last_removed": "2017-12-08T12:25:00.947136+00:00", 
+                    "list_source_url": "https://www.binarydefense.com/banlist.txt", 
+                    "maintainer": "Binary Defense Systems", 
+                    "maintainer_url": "https://www.binarydefense.com/", 
+                    "source_file_date": "Fri Dec  8 08:00:04 UTC 2017", 
+                    "timeline": [
+                        {
+                            "added": "2017-12-05T12:15:53.183365", 
+                            "removed": "2017-12-08T12:25:00.947136"
+                        }
+                    ]
                 }
-            ],
-            "hits_count": 3,
-            "last_added": "2017-10-24T15:08:11.784491+00:00"
+            ], 
+            "hits_count": 2, 
+            "last_added": "2017-12-05T12:15:53.183365+00:00"
         }
     }
 }
