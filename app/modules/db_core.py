@@ -2,9 +2,8 @@ from sqlalchemy import MetaData, Table, Column, DateTime, ForeignKey
 from sqlalchemy import create_engine, exc
 from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy.pool import NullPool
-from sqlalchemy.sql import func
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.dialects.postgresql import INET, TEXT
+from sqlalchemy.dialects.postgresql import INET, TEXT, JSONB
 
 from modules.general import General
 
@@ -23,9 +22,10 @@ class Alchemy(General):
             create_database(self.engine.url)
         feed_table = Table(table_name, self.metadata,
             Column("ip", INET, primary_key=True),
-            Column("first_seen", DateTime(timezone=True), server_default=func.now()),
-            Column("last_added", DateTime(timezone=True), server_default=func.now()),
+            Column("first_seen", DateTime(timezone=True)),
+            Column("last_added", DateTime(timezone=True)),
             Column("last_removed", DateTime(timezone=True), nullable=True),
+            Column("timeline", JSONB, default=[]),
             Column("feed_name", TEXT, ForeignKey("feeds_meta.feed_name")),
             extend_existing=True
         )
