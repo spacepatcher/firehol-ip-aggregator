@@ -4,6 +4,7 @@
 Some features of keeping and processing data:
 * New data is written to existing data with `last_added` field update.
 * Data deleted from reputation feed is not deleted from the application database. For such data, `last_removed` field is updated.
+* Field `timeline` is based on events of adding and removing item from reputation list.
 
 **Start application**
 
@@ -26,7 +27,7 @@ Here is an example of the result of the request ip using the client:
 ```
 {
     "blacklisted_count": 1,
-	"feeds_available": 151, 
+    "feeds_available": 151, 
     "request_time": "2017-12-08T17:59:56.576402+03:00", 
     "requested_count": 1, 
     "results": {
