@@ -72,14 +72,15 @@ class FeedsAlchemy(Alchemy):
                 current_time_db = datetime.now()
                 current_time_json = current_time_db.isoformat()
                 for ip in ip_group:
-                    select_query = select([feed_table.c.timeline]).where(feed_table.c.ip == ip)
-                    timeline_list = db_session.execute(select_query).fetchone()[0]
-                    period_json = timeline_list.pop()
-                    period_json["removed"] = current_time_json
-                    timeline_list.append(period_json)
-                    update_query = update(feed_table).where(feed_table.c.ip == ip).values(last_removed=current_time_db,
-                                                                                          timeline=timeline_list)
-                    db_session.execute(update_query)
+                    if db_session.query((exists().where(feed_table.c.ip == ip))).scalar():
+                        select_query = select([feed_table.c.timeline]).where(feed_table.c.ip == ip)
+                        timeline_list = db_session.execute(select_query).fetchone()[0]
+                        period_json = timeline_list.pop()
+                        period_json["removed"] = current_time_json
+                        timeline_list.append(period_json)
+                        update_query = update(feed_table).where(feed_table.c.ip == ip).values(last_removed=current_time_db,
+                                                                                              timeline=timeline_list)
+                        db_session.execute(update_query)
                 db_session.commit()
         except Exception as e:
             self.logger.error("Error: {}".format(e))
