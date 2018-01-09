@@ -1,4 +1,4 @@
-# Firehol-IP-Aggregator
+# Aggregator of Firehol IP blacklists
 Аpplication for keeping reputation feeds from https://github.com/firehol/blocklist-ipsets (.netset and .ipset only and not time sliced lists) in PostgreSQL database with including historical data. 
 
 Some features of keeping and processing data:
