@@ -1,5 +1,5 @@
 # Aggregator of FireHOL IP lists
-Аpplication for keeping reputation feeds from https://github.com/firehol/blocklist-ipsets (.netset and .ipset only and not time sliced lists) in PostgreSQL database with including historical data. 
+Аpplication for keeping feeds from <a href="https://github.com/firehol/blocklist-ipsets" target="_blank">blocklist-ipsets</a> (only *.netset and *.ipset files are aggregated) in PostgreSQL with including historical changes. For requests developed HTTP-based API service. 
 
 Some features of keeping and processing data:
 * New data is written to existing data with `last_added` field update.
