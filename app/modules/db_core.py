@@ -1,4 +1,4 @@
-from sqlalchemy import MetaData, Table, Column, DateTime, ForeignKey
+from sqlalchemy import MetaData, Table, Column, DateTime, ForeignKey, Sequence, Integer
 from sqlalchemy import create_engine, exc
 from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy.pool import NullPool
@@ -20,8 +20,10 @@ class Alchemy(General):
     def get_feed_table_object(self, table_name):
         if not database_exists(self.engine.url):
             create_database(self.engine.url)
+        sequence_name = table_name + "id_seq"
         feed_table = Table(table_name, self.metadata,
-            Column("ip", INET, primary_key=True),
+            Column("id", Integer, Sequence(sequence_name, metadata=self.metadata),  primary_key=True),
+            Column("ip", INET, index=True, unique=True),
             Column("first_seen", DateTime(timezone=True)),
             Column("last_added", DateTime(timezone=True)),
             Column("last_removed", DateTime(timezone=True), nullable=True),

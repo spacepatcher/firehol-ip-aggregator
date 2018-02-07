@@ -39,7 +39,10 @@ class FeedsAlchemy(Alchemy):
             for ip_group in self.group_by(n=100000, iterable=feed_data.get("added_ip")):
                 current_time_db = datetime.now()
                 current_time_json = current_time_db.isoformat()
-                period_json = {"added": current_time_json, "removed": ""}
+                period_json = {
+                    "added":    current_time_json,
+                    "removed":  ""
+                }
                 for ip in ip_group:
                     if db_session.query((exists().where(feed_table.c.ip == ip))).scalar():
                         select_query = select([feed_table.c.timeline]).where(feed_table.c.ip == ip)
@@ -89,13 +92,14 @@ class FeedsAlchemy(Alchemy):
         finally:
             db_session.close()
 
-    def db_search_data(self, net_list):
+    def db_search_data(self, net_list, requested_count=0, blacklisted_count=0):
         request_time = pytz.utc.localize(datetime.utcnow()).astimezone(pytz.timezone("Europe/Moscow")).isoformat()
-        requested_count = 0
-        blacklisted_count = 0
         feed_tables = list()
         results_total = dict()
         results_total_extended = dict()
+        ignore_columns = [
+            "id"
+        ]
         db_session = self.get_db_session()
         try:
             self.metadata.reflect(bind=self.engine)
@@ -108,7 +112,12 @@ class FeedsAlchemy(Alchemy):
                     sql_query = "SELECT * FROM {feed_table_name} f, {meta_table_name} m WHERE f.feed_name = m.feed_name AND f.ip<<='{net}'" \
                         .format(feed_table_name=feed_table.name, meta_table_name=meta_table.name, net=net)
                     raw_results = db_session.execute(sql_query).fetchall()
-                    results.extend([dict(zip(item.keys(), item)) for item in raw_results if raw_results])
+                    if raw_results:
+                        for item in raw_results:
+                            result_dict = dict(zip(item.keys(), item))
+                            for ignore_column in ignore_columns:
+                                result_dict.pop(ignore_column)
+                            results.append(result_dict)
                 results_grouped = self.group_dict_by_key(results, "ip")
                 blacklisted_count += len(results_grouped.keys())
                 results_grouped_extended = self.extend_result_data(results_grouped)
@@ -119,6 +128,10 @@ class FeedsAlchemy(Alchemy):
         finally:
             db_session.close()
         results_total_extended.setdefault("results", results_total)
-        results_total_extended.update({"request_time": request_time, "feeds_available": len(feed_tables),
-                                       "requested_count": requested_count, "blacklisted_count": blacklisted_count})
+        results_total_extended.update({
+            "request_time":      request_time,
+            "feeds_available":   len(feed_tables),
+            "requested_count":   requested_count,
+            "blacklisted_count": blacklisted_count
+        })
         return results_total_extended
