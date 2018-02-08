@@ -11,6 +11,7 @@ from modules.general import General
 class Alchemy(General):
     def __init__(self):
         super().__init__()
+
         self.feeds_meta_table = "feeds_meta"
         self.connection_string = "postgresql://%s:%s@%s:5432/%s" \
                                  % (self.database_user, self.database_password, self.server_address, self.database_name)
@@ -20,6 +21,7 @@ class Alchemy(General):
     def get_feed_table_object(self, table_name):
         if not database_exists(self.engine.url):
             create_database(self.engine.url)
+
         sequence_name = table_name + "id_seq"
         feed_table = Table(table_name, self.metadata,
             Column("id", Integer, Sequence(sequence_name, metadata=self.metadata),  primary_key=True),
@@ -37,6 +39,7 @@ class Alchemy(General):
     def get_meta_table_object(self):
         if not database_exists(self.engine.url):
             create_database(self.engine.url)
+
         meta_table = Table(self.feeds_meta_table, self.metadata,
             Column("feed_name", TEXT, primary_key=True),
             Column("maintainer", TEXT),
@@ -47,6 +50,7 @@ class Alchemy(General):
             Column("entries", TEXT),
             extend_existing=True
         )
+
         try:
             meta_table.create(self.engine, checkfirst=True)
         except exc.ProgrammingError:
@@ -57,6 +61,8 @@ class Alchemy(General):
         try:
             cursor = self.engine
             Session = sessionmaker(bind=cursor)
+
             return Session()
+
         except Exception:
             self.logger.exception("Error in database session creation occurred")
