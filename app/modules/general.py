@@ -19,10 +19,6 @@ class General:
         self.not_periodic_feed_re = re.compile(r"^(?!.*_\d{1,3}d(\.ipset|\.netset)).*(\.ipset|\.netset)$")
         self.uniq_ips_re = re.compile(r"(?<=\ )(\d*)(?= unique IPs)")
 
-        # Paths configuration
-        self.repo_path = "%s/%s" % (os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "git-data/firehol")
-        self.log_path = "%s/%s" % (os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "log/run.log")
-
         # Application configuration
         self.config = self.load_config("%s/%s" % (os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "conf/config.json"))
         self.database_user = self.config.get("pg_database_user")
@@ -33,8 +29,14 @@ class General:
         self.sync_period_h = self.config.get("sync_period_h")
         self.unique_ips_limit = self.config.get("unique_ips_limit")
 
+        # FireHOL repo path
+        self.repo_path = "%s/%s" % (os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "git-data/firehol")
+
+        # Logger configuration
+        self.log_path = "%s/%s" % (os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "log/run.log")
         self.logger = logging.getLogger(__name__)
-        self.formatter = logging.basicConfig(filename=self.log_path, level=logging.INFO, format="%(asctime)s [%(levelname)s] [%(filename)s] %(funcName)s: %(message)s")
+        self.formatter = logging.basicConfig(filename=self.log_path, level=logging.INFO,
+                                             format="%(asctime)s [%(levelname)s] [%(filename)s] %(funcName)s: %(message)s")
 
     def load_config(self, config):
         with open(config) as file_obj:
@@ -47,19 +49,21 @@ class General:
 
     def group_by(self, n, iterable):
         it = iter(iterable)
+
         while True:
             chunk = tuple(itertools.islice(it, n))
             if not chunk:
                 return
             yield chunk
 
-    def normalize_net4(self, net_raw):
+    def iterate_net(self, net_raw):
         for ip in netaddr.IPNetwork(net_raw).iter_hosts():
             yield str(ip)
 
-    def validate_input_item(self, input):
-        if self.net_re.match(input) or self.ip_re.match(input):
-            ip_network = input
+    def validate_request(self, request):
+        if self.net_re.match(request) or self.ip_re.match(request):
+            ip_network = request
+
             if not netaddr.IPNetwork(ip_network).is_private():
                 return True
 
@@ -68,24 +72,30 @@ class General:
 
     def get_files(self, directory):
         files = list()
+
         for file in os.listdir(directory):
             files.append(os.path.join(directory, file))
+
         return files
 
     def group_dict_by_key(self, dictionary_list, key):
         bunched_dict = dict()
+
         for dictionary in dictionary_list:
             bunching_element = dictionary.pop(key, None)
             bunched_dict.setdefault(bunching_element, []).append(dictionary)
+
         return bunched_dict
 
     def extend_result_data(self, dictionary):
         extended_dict = dict()
-        for key, value in dictionary.items():
-            extended_dict.setdefault(key, {})
-            extended_dict[key]["hits_count"] = len(value)
-            extended_dict[key]["categories"] = list(set([dict_item.get("category") for dict_item in dictionary[key]]))
-            extended_dict[key]["first_seen"] = sorted(list(set([dict_item.get("first_seen") for dict_item in dictionary[key]])))[0]
-            extended_dict[key]["last_added"] = sorted(list(set([dict_item.get("last_added") for dict_item in dictionary[key]])), reverse=True)[0]
-            extended_dict[key]["hits"] = dictionary.get(key, None)
+
+        for ip, results in dictionary.items():
+            extended_dict.setdefault(ip, {})
+            extended_dict[ip]["hits_count"] = len(results)
+            extended_dict[ip]["categories"] = list(set([dict_item.get("category") for dict_item in dictionary[ip]]))
+            extended_dict[ip]["first_seen"] = sorted(list(set([dict_item.get("first_seen") for dict_item in dictionary[ip]])))[0]
+            extended_dict[ip]["last_added"] = sorted(list(set([dict_item.get("last_added") for dict_item in dictionary[ip]])), reverse=True)[0]
+            extended_dict[ip]["hits"] = dictionary.get(ip, None)
+
         return extended_dict

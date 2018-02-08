@@ -18,25 +18,30 @@ def prettify(data):
 def read_file(filename):
     with open(filename) as f:
         lines = f.read().splitlines()
+
     return lines
 
 
-def validate_input_item(input):
-    if NETWORK_re.match(input) or IP_re.match(input):
+def validate_request(request):
+    if NETWORK_re.match(request) or IP_re.match(request):
         return True
 
 
 def api_search(payload):
     url = DB_SERVER + "/search"
+
     try:
         r = requests.post(url, data=payload, verify=False)
     except requests.exceptions.ConnectionError as e:
         print(e)
         print("Server is down or bad http address.")
         sys.exit(1)
+
     if r.status_code == 200:
         data = r.json()
+
         return data
+
     else:
         print("Something went wrong. Server down?")
         print("Status code: {}".format(r.status_code))
@@ -63,27 +68,35 @@ Postgres IP Feed API server: %s''' % (DB_SERVER))
     args = parser.parse_args()
 
     if args.stdin:
-        for item in args.stdin.split(","):
-            if validate_input_item(item):
+        for request in args.stdin.split(","):
+            if validate_request(request):
                 pass
             else:
-                print("Data validation error in '%s'." % item)
+                print("Data validation error in '%s'." % request)
                 sys.exit(1)
+
         search_results = api_search(args.stdin)
+
     elif args.file:
-        net_lines = read_file(args.file)
         line_number = 0
-        for net_item in net_lines:
+
+        request_list = read_file(args.file)
+
+        for request in request_list:
             line_number += 1
-            if validate_input_item(net_item):
+
+            if validate_request(request):
                 pass
             else:
-                print("Data validation error at line number %s in '%s'." % (line_number, net_item))
+                print("Data validation error at line number %s in '%s'." % (line_number, request_list))
                 sys.exit(1)
-        search_results = api_search(",".join(net_lines))
+
+        search_results = api_search(",".join(request_list))
+
     else:
         print("You must choose the input data format. Exiting...")
         sys.exit(1)
+
     if args.output:
         output_to_file(args.output, search_results)
     else:

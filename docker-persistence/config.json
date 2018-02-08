@@ -1,9 +1,0 @@
-{
-  "pg_database_user": "postgres",
-  "pg_database_password": "8neEmdvl",
-  "pg_database_name": "firehol_ip_feeds",
-  "pg_server_address": "postgres",
-  "firehol_ipsets_git": "https://github.com/firehol/blocklist-ipsets.git",
-  "sync_period_h": 1,
-  "unique_ips_limit": 1000000
-}

@@ -18,6 +18,5 @@ services:
     volumes:
       - ./docker-persistence/app-data/git-data:/app/git-data
       - ./docker-persistence/app-data/log:/app/log
-      - ./docker-persistence/config.json:/app/conf/config.json
     depends_on:
       - postgres
