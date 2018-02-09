@@ -22,7 +22,7 @@ class Alchemy(General):
         if not database_exists(self.engine.url):
             create_database(self.engine.url)
 
-        sequence_name = table_name + "id_seq"
+        sequence_name = table_name + "_id_seq"
         feed_table = Table(table_name, self.metadata,
             Column("id", Integer, Sequence(sequence_name, metadata=self.metadata),  primary_key=True),
             Column("ip", INET, index=True, unique=True),
