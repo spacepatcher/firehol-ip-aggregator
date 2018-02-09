@@ -35,6 +35,8 @@ class Alchemy(General):
                 if not database_exists(engine.url):
                     create_database(engine.url)
 
+                self.logger.info("Successfully connected to the database")
+
                 return engine
 
             except OperationalError:
@@ -86,10 +88,8 @@ class Alchemy(General):
         return meta_table
 
     def get_db_session(self):
-        engine = self.get_engine_object(connection_string=self.connection_string, poolclass=NullPool)
-
         try:
-            cursor = engine
+            cursor = self.engine
             Session = sessionmaker(bind=cursor)
 
             return Session()
