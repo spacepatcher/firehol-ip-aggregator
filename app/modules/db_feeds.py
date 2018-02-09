@@ -110,8 +110,9 @@ class FeedsAlchemy(Alchemy):
         finally:
             self.db_session.close()
 
-    def db_search_data(self, net_list, feeds_available=0, requested_count=0, blacklisted_count=0):
+    def db_search_data(self, network_list, feeds_available=0, requested_count=0, blacklisted_count=0):
         request_time = pytz.utc.localize(datetime.utcnow()).astimezone(pytz.timezone("Europe/Moscow")).isoformat()
+        results = list()
         results_total = dict()
         results_total_extended = dict()
 
@@ -124,29 +125,33 @@ class FeedsAlchemy(Alchemy):
             feed_tables = [table for table in reversed(self.metadata.sorted_tables) if "feed_" in table.name]
             feeds_available = len(feed_tables)
 
-            for net in net_list:
-                results = list()
-                requested_count += len(netaddr.IPNetwork(net))
+            network_string = ""
+            for network in network_list:
+                requested_count += len(netaddr.IPNetwork(network))
+                network_string += str(network) + "','"
 
-                for feed_table in feed_tables:
-                    sql_query = "SELECT * FROM {feed_table_name} f, {meta_table_name} m WHERE f.feed_name = m.feed_name AND f.ip<<='{net}'" \
-                        .format(feed_table_name=feed_table.name, meta_table_name=self.meta_table.name, net=net)
-                    raw_results = self.db_session.execute(sql_query).fetchall()
+            networks_string = network_string[:-3]
 
-                    if raw_results:
-                        for item in raw_results:
-                            result_dict = dict(zip(item.keys(), item))
+            for feed_table in feed_tables:
+                sql_query = "SELECT * FROM {feed_table_name} f, {meta_table_name} m WHERE " \
+                            "f.feed_name = m.feed_name AND f.ip <<= ANY (ARRAY ['{networks}']::inet[])"\
+                    .format(feed_table_name=feed_table.name, meta_table_name=self.meta_table.name, networks=networks_string)
+                raw_results = self.db_session.execute(sql_query).fetchall()
 
-                            for column in ignore_columns:
-                                result_dict.pop(column)
+                if raw_results:
+                    for item in raw_results:
+                        result_dict = dict(zip(item.keys(), item))
 
-                            results.append(result_dict)
+                        for column in ignore_columns:
+                            result_dict.pop(column)
 
-                results_grouped = self.group_dict_by_key(results, "ip")
-                blacklisted_count += len(results_grouped.keys())
-                results_grouped_extended = self.extend_result_data(results_grouped)
+                        results.append(result_dict)
 
-                results_total.update(results_grouped_extended)
+            results_grouped = self.group_dict_by_key(results, "ip")
+            results_grouped_extended = self.extend_result_data(results_grouped)
+
+            blacklisted_count = len(results_grouped.keys())
+            results_total.update(results_grouped_extended)
 
         except Exception as e:
             self.logger.error("Error: {}".format(e))
