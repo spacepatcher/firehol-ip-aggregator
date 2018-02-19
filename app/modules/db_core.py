@@ -52,7 +52,7 @@ class Alchemy(General):
         exit(1)
 
     def get_feed_table_object(self, table_name):
-        sequence_name = table_name + "id_seq"
+        sequence_name = table_name + "_id_seq"
 
         feed_table = Table(table_name, self.metadata,
             Column("id", Integer, Sequence(sequence_name, metadata=self.metadata),  primary_key=True),
