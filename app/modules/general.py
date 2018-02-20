@@ -78,24 +78,22 @@ class General:
 
         return files
 
-    def group_dict_by_key(self, dictionary_list, key):
+    def extend_result_data(self, results):
         bunched_dict = dict()
+        extended_results = list()
 
-        for dictionary in dictionary_list:
-            bunching_element = dictionary.pop(key, None)
+        for dictionary in results:
+            bunching_element = dictionary.pop("ip", None)
             bunched_dict.setdefault(bunching_element, []).append(dictionary)
 
-        return bunched_dict
+        for bunching_element, value in bunched_dict.items():
+            extended_results.append({
+                "ip": bunching_element,
+                "categories": list(set([dictionary.get("category") for dictionary in bunched_dict[bunching_element]])),
+                "first_seen": sorted(list(set([dictionary.get("first_seen") for dictionary in bunched_dict[bunching_element]])))[0],
+                "last_added": sorted(list(set([dictionary.get("last_added") for dictionary in bunched_dict[bunching_element]])), reverse=True)[0],
+                "hits_count": len(value),
+                "hits": bunched_dict.get(bunching_element, None)
+            })
 
-    def extend_result_data(self, dictionary):
-        extended_dict = dict()
-
-        for ip, results in dictionary.items():
-            extended_dict.setdefault(ip, {})
-            extended_dict[ip]["hits_count"] = len(results)
-            extended_dict[ip]["categories"] = list(set([dict_item.get("category") for dict_item in dictionary[ip]]))
-            extended_dict[ip]["first_seen"] = sorted(list(set([dict_item.get("first_seen") for dict_item in dictionary[ip]])))[0]
-            extended_dict[ip]["last_added"] = sorted(list(set([dict_item.get("last_added") for dict_item in dictionary[ip]])), reverse=True)[0]
-            extended_dict[ip]["hits"] = dictionary.get(ip, None)
-
-        return extended_dict
+        return extended_results
