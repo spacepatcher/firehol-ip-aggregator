@@ -117,8 +117,8 @@ class FeedsAlchemy(Alchemy):
 
     def db_search_data(self, network_list, requested_count=0):
         request_time = pytz.utc.localize(datetime.utcnow()).astimezone(pytz.timezone("Europe/Moscow")).isoformat()
-        results = list()
-        results_extended = dict()
+        results_grouped = list()
+        results = dict()
 
         ignore_columns = [
             "id"
@@ -130,6 +130,8 @@ class FeedsAlchemy(Alchemy):
             feeds_available = len(feed_tables)
 
             for network in network_list:
+                filtered_results = list()
+
                 requested_count += len(netaddr.IPNetwork(network))
 
                 sql_query = "SELECT * FROM {aggregated_table_name} a, {meta_table_name} m WHERE " \
@@ -145,22 +147,21 @@ class FeedsAlchemy(Alchemy):
                         for column in ignore_columns:
                             result_dict.pop(column)
 
-                        results.append(result_dict)
+                        filtered_results.append(result_dict)
 
-            results_grouped = self.group_dict_by_key(results, "ip")
-            results_grouped_extended = self.extend_result_data(results_grouped)
+                results_grouped.extend(self.extend_result_data(filtered_results))
 
-            blacklisted_count = len(results_grouped.keys())
+            blacklisted_count = len(results_grouped)
 
-            results_extended.setdefault("results", results_grouped_extended)
-            results_extended.update({
+            results.update({
                 "request_time":      request_time,
                 "feeds_available":   feeds_available,
                 "requested_count":   requested_count,
-                "blacklisted_count": blacklisted_count
+                "blacklisted_count": blacklisted_count,
+                "results":           results_grouped
             })
 
-            return results_extended
+            return results
 
         except Exception as e:
             self.logger.error("Error: {}".format(e))

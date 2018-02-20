@@ -41,8 +41,8 @@ Here is an example of the result of the request IP `149.255.60.136` using the cl
     "feeds_available": 188,
     "request_time": "2018-02-02T14:27:59.957559+03:00",
     "requested_count": 1,
-    "results": {
-        "149.255.60.136": {
+    "results": [
+        {    
             "categories": [
                 "reputation"
             ],
@@ -72,9 +72,10 @@ Here is an example of the result of the request IP `149.255.60.136` using the cl
                 }
             ],
             "hits_count": 1,
+            "ip": "149.255.60.136",
             "last_added": "2018-01-12T11:35:49.283765+00:00"
         }
-    }
+    ]
 }
 
 ```
