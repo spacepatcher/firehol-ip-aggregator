@@ -2,7 +2,7 @@ import pytz
 import netaddr
 from datetime import datetime
 from sqlalchemy import exc
-from sqlalchemy.sql import select, update, exists
+from sqlalchemy.sql import select, update, exists, func
 from sqlalchemy.dialects.postgresql import insert
 
 from modules.db_core import Alchemy
@@ -14,6 +14,7 @@ class FeedsAlchemy(Alchemy):
 
         self.db_session = self.get_db_session()
         self.meta_table = self.get_meta_table_object()
+        self.aggregated_table = self.get_aggregated_table_object()
 
     def db_update_metatable(self, feed_data):
         feed_meta = feed_data.get("feed_meta")
@@ -28,6 +29,7 @@ class FeedsAlchemy(Alchemy):
                                                      source_file_date=feed_meta.get("source_file_date"),
                                                      category=feed_meta.get("category"),
                                                      entries=feed_meta.get("entries")))
+
                 self.db_session.execute(insert_query)
                 self.db_session.commit()
 
@@ -48,8 +50,8 @@ class FeedsAlchemy(Alchemy):
                 current_time_json = current_time_db.isoformat()
 
                 period = {
-                    "added":    current_time_json,
-                    "removed":  ""
+                    "added":   current_time_json,
+                    "removed": ""
                 }
 
                 for ip in ip_group:
@@ -59,6 +61,7 @@ class FeedsAlchemy(Alchemy):
                         timeline.append(period)
                         update_query = update(feed_table).where(feed_table.c.ip == ip).values(last_added=current_time_db,
                                                                                               timeline=timeline)
+
                         self.db_session.execute(update_query)
 
                     else:
@@ -67,6 +70,7 @@ class FeedsAlchemy(Alchemy):
                                                                  last_added=current_time_db,
                                                                  feed_name=feed_data.get("feed_name"),
                                                                  timeline=[period])
+
                         self.db_session.execute(insert_query)
 
                 self.db_session.commit()
@@ -98,6 +102,7 @@ class FeedsAlchemy(Alchemy):
                         timeline.append(period)
                         update_query = update(feed_table).where(feed_table.c.ip == ip).values(last_removed=current_time_db,
                                                                                               timeline=timeline)
+
                         self.db_session.execute(update_query)
 
                 self.db_session.commit()
@@ -110,11 +115,10 @@ class FeedsAlchemy(Alchemy):
         finally:
             self.db_session.close()
 
-    def db_search_data(self, network_list, feeds_available=0, requested_count=0, blacklisted_count=0):
+    def db_search_data(self, network_list, requested_count=0):
         request_time = pytz.utc.localize(datetime.utcnow()).astimezone(pytz.timezone("Europe/Moscow")).isoformat()
         results = list()
-        results_total = dict()
-        results_total_extended = dict()
+        results_extended = dict()
 
         ignore_columns = [
             "id"
@@ -125,17 +129,15 @@ class FeedsAlchemy(Alchemy):
             feed_tables = [table for table in reversed(self.metadata.sorted_tables) if "feed_" in table.name]
             feeds_available = len(feed_tables)
 
-            network_string = ""
+            contains_entries = self.db_session.query(func.count(self.aggregated_table.c.id)).scalar()
+
             for network in network_list:
                 requested_count += len(netaddr.IPNetwork(network))
-                network_string += str(network) + "','"
 
-            networks_string = network_string[:-3]
+                sql_query = "SELECT * FROM {aggregated_table_name} a, {meta_table_name} m WHERE " \
+                            "a.ip <<= '{network}' AND a.feed_name = m.feed_name" \
+                    .format(aggregated_table_name=self.aggregated_table.name, meta_table_name=self.meta_table.name, network=network)
 
-            for feed_table in feed_tables:
-                sql_query = "SELECT * FROM {feed_table_name} f, {meta_table_name} m WHERE " \
-                            "f.feed_name = m.feed_name AND f.ip <<= ANY (ARRAY ['{networks}']::inet[])"\
-                    .format(feed_table_name=feed_table.name, meta_table_name=self.meta_table.name, networks=networks_string)
                 raw_results = self.db_session.execute(sql_query).fetchall()
 
                 if raw_results:
@@ -151,21 +153,57 @@ class FeedsAlchemy(Alchemy):
             results_grouped_extended = self.extend_result_data(results_grouped)
 
             blacklisted_count = len(results_grouped.keys())
-            results_total.update(results_grouped_extended)
+
+            results_extended.setdefault("results", results_grouped_extended)
+            results_extended.update({
+                "request_time":      request_time,
+                "feeds_available":   feeds_available,
+                "requested_count":   requested_count,
+                "contains_entries":  contains_entries,
+                "blacklisted_count": blacklisted_count
+            })
+
+            return results_extended
 
         except Exception as e:
             self.logger.error("Error: {}".format(e))
             self.logger.exception("Error while searching occurred")
 
+            return {"Error while searching occurred"}
+
         finally:
             self.db_session.close()
 
-        results_total_extended.setdefault("results", results_total)
-        results_total_extended.update({
-            "request_time":      request_time,
-            "feeds_available":   feeds_available,
-            "requested_count":   requested_count,
-            "blacklisted_count": blacklisted_count
-        })
+    def db_clear_aggregated(self):
+        try:
+            self.db_session.execute(self.aggregated_table.delete())
+            self.db_session.commit()
 
-        return results_total_extended
+        except Exception as e:
+            self.logger.error("Error: {}".format(e))
+            self.logger.exception("Can't commit to DB. Rolling back changes...")
+            self.db_session.rollback()
+
+        finally:
+            self.db_session.close()
+
+    def db_fill_aggregated(self):
+        try:
+            self.metadata.reflect(bind=self.engine)
+            feed_tables = [table for table in reversed(self.metadata.sorted_tables) if "feed_" in table.name]
+
+            for feed_table in feed_tables:
+                sql_query = "INSERT INTO {aggregated_table_name} (ip, first_seen, last_added, last_removed, timeline, feed_name) " \
+                            "SELECT ip, first_seen, last_added, last_removed, timeline, feed_name FROM {feed_table_name}" \
+                    .format(aggregated_table_name=self.aggregated_table.name, feed_table_name=feed_table.name)
+
+                self.db_session.execute(sql_query)
+                self.db_session.commit()
+
+        except Exception as e:
+            self.logger.error("Error: {}".format(e))
+            self.logger.exception("Can't commit to DB. Rolling back changes...")
+            self.db_session.rollback()
+
+        finally:
+            self.db_session.close()

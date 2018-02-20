@@ -17,6 +17,7 @@ class Alchemy(General):
         super().__init__()
 
         self.feeds_meta_table = "feeds_meta"
+        self.feeds_aggregated_table = "feeds_aggregated"
         self.connection_string = "postgresql://%s:%s@%s:5432/%s" \
                                  % (self.database_user, self.database_password, self.server_address, self.database_name)
         self.metadata = MetaData()
@@ -86,6 +87,21 @@ class Alchemy(General):
             pass
 
         return meta_table
+
+    def get_aggregated_table_object(self):
+        aggregated_table = Table(self.feeds_aggregated_table, self.metadata,
+            Column("id", Integer, primary_key=True),
+            Column("ip", INET, index=True, unique=False),
+            Column("first_seen", DateTime(timezone=True)),
+            Column("last_added", DateTime(timezone=True)),
+            Column("last_removed", DateTime(timezone=True), nullable=True),
+            Column("timeline", JSONB, default=[]),
+            Column("feed_name", TEXT, ForeignKey("feeds_meta.feed_name")),
+            extend_existing=True
+        )
+        aggregated_table.create(self.engine, checkfirst=True)
+
+        return aggregated_table
 
     def get_db_session(self):
         try:
