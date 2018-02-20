@@ -223,6 +223,11 @@ def sync_with_db_diff(diff_serialized):
             FeedsAlchemy.db_update_removed(feed_diff_data)
 
 
+def refresh_aggregated():
+    FeedsAlchemy.db_clear_aggregated()
+    FeedsAlchemy.db_fill_aggregated()
+
+
 if __name__ == "__main__":
     period = 3600 * int(SyncGit.sync_period_h)
 
@@ -285,6 +290,9 @@ if __name__ == "__main__":
 
             except AttributeError:
                 SyncGit.logger.exception("Diff data has an unrecognized structure")
+
+        refresh_aggregated()
+        SyncGit.logger.info("Aggregation table refreshed")
 
         SyncGit.logger.info("Sleep for %d hour(s)" % (period / 3600))
         time.sleep(period)
