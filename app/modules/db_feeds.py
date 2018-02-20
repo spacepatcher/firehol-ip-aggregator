@@ -2,7 +2,7 @@ import pytz
 import netaddr
 from datetime import datetime
 from sqlalchemy import exc
-from sqlalchemy.sql import select, update, exists, func
+from sqlalchemy.sql import select, update, exists
 from sqlalchemy.dialects.postgresql import insert
 
 from modules.db_core import Alchemy
@@ -129,8 +129,6 @@ class FeedsAlchemy(Alchemy):
             feed_tables = [table for table in reversed(self.metadata.sorted_tables) if "feed_" in table.name]
             feeds_available = len(feed_tables)
 
-            contains_entries = self.db_session.query(func.count(self.aggregated_table.c.id)).scalar()
-
             for network in network_list:
                 requested_count += len(netaddr.IPNetwork(network))
 
@@ -159,7 +157,6 @@ class FeedsAlchemy(Alchemy):
                 "request_time":      request_time,
                 "feeds_available":   feeds_available,
                 "requested_count":   requested_count,
-                "contains_entries":  contains_entries,
                 "blacklisted_count": blacklisted_count
             })
 
