@@ -38,7 +38,6 @@ Here is an example of the result of the request IP `149.255.60.136` using the cl
 ```
 {
     "blacklisted_count": 1,
-    "contains_entries": 1265303,
     "feeds_available": 188,
     "request_time": "2018-02-02T14:27:59.957559+03:00",
     "requested_count": 1,
@@ -83,7 +82,6 @@ If the observable is not found in the application database, the response will lo
 ```
 {
     "blacklisted_count": 0,
-    "contains_entries": 1265303,
     "feeds_available": 188,
     "request_time": "2018-02-02T14:31:17.291948+03:00",
     "requested_count": 1,
