@@ -30,12 +30,14 @@ The most important configuration parameters are listed in the table below.
 **Example usage**
 
 Application is able to get search requests in IP or CIDR format, also in mixed list of both data types. To search, run the command:
+
 `python client.py -s 149.255.60.136` 
 
-Here is an example of the result of the request ip using the client:
+Here is an example of the result of the request IP `149.255.60.136` using the client:
 ```
 {
     "blacklisted_count": 1,
+    "contains_entries": 1265303,
     "feeds_available": 188,
     "request_time": "2018-02-02T14:27:59.957559+03:00",
     "requested_count": 1,
@@ -80,6 +82,7 @@ If the observable is not found in the application database, the response will lo
 ```
 {
     "blacklisted_count": 0,
+    "contains_entries": 1265303,
     "feeds_available": 188,
     "request_time": "2018-02-02T14:31:17.291948+03:00",
     "requested_count": 1,
