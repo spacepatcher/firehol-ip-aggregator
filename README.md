@@ -17,7 +17,8 @@ The collection module will start automatically.
 **Important files**
 
 * `client.py` - simple python script for convenient interaction with FireHOL-IP-Aggregator API.
-* `app/conf/config.json` - the main configuration file with several parameters. 
+* `app/conf/config.json` - the main configuration file with several parameters.
+* `conf/postgresql.conf` - the main Postgres configuration file (generated with http://pgtune.leopard.in.ua/).
 
 The most important configuration parameters are listed in the table below.
 
