@@ -251,6 +251,9 @@ if __name__ == "__main__":
                 except Exception:
                     SyncGit.logger.exception("Error in multiprocessing occurred")
 
+                refresh_aggregated()
+                SyncGit.logger.info("Aggregation table refreshed")
+
             else:
                 SyncGit.logger.warning("Local repository is empty")
 
@@ -288,11 +291,12 @@ if __name__ == "__main__":
 
                     SyncGit.logger.info("Parallel feeds processing finished")
 
+                if diff.added_files or diff.modified_files:
+                    refresh_aggregated()
+                    SyncGit.logger.info("Aggregation table refreshed")
+
             except AttributeError:
                 SyncGit.logger.exception("Diff data has an unrecognized structure")
-
-        refresh_aggregated()
-        SyncGit.logger.info("Aggregation table refreshed")
 
         SyncGit.logger.info("Sleep for %d hour(s)" % (period / 3600))
         time.sleep(period)
