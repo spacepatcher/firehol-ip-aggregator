@@ -174,7 +174,10 @@ class FeedsAlchemy(Alchemy):
 
     def db_clear_aggregated(self):
         try:
-            self.db_session.execute(self.aggregated_table.delete())
+            sql_query = "TRUNCATE {aggregated_table_name} RESTART IDENTITY"\
+                .format(aggregated_table_name=self.aggregated_table.name)
+
+            self.db_session.execute(sql_query)
             self.db_session.commit()
 
         except Exception as e:
