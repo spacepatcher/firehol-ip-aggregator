@@ -20,7 +20,7 @@ class General:
         self.uniq_ips_re = re.compile(r"(?<=\ )(\d*)(?= unique IPs)")
 
         # Application configuration
-        self.config = self.load_config("%s/%s" % (os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "conf/config.json"))
+        self.config = self.load_config("%s/%s" % (os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "conf/app.conf"))
         self.database_user = self.config.get("pg_database_user")
         self.database_password = self.config.get("pg_database_password")
         self.database_name = self.config.get("pg_database_name")

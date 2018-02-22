@@ -9,7 +9,8 @@ services:
       - POSTGRES_PASSWORD=8neEmdvl
     volumes:
       - ./docker-persistence/postgres:/var/lib/postgresql/data
-      - ./conf/postgresql.conf:/var/lib/postgresql/data/postgresql.conf
+      - ./conf/postgresql.conf:/etc/postgresql.conf
+    command: postgres -c config_file=/etc/postgresql.conf
 
   app:
     build: .
@@ -19,5 +20,6 @@ services:
     volumes:
       - ./docker-persistence/app-data/git-data:/app/git-data
       - ./docker-persistence/app-data/log:/app/log
+      - ./conf/app.conf:/app/conf/app.conf
     depends_on:
       - postgres
