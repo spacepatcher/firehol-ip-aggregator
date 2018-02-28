@@ -54,6 +54,7 @@ Here is an example of the result of the request IP `149.255.60.136` using the cl
 ```
 {
     "blacklisted_count": 1,
+    "currently_blacklisted_count": 0,
     "feeds_available": 188,
     "request_time": "2018-02-02T14:27:59.957559+03:00",
     "requested_count": 1,
@@ -62,10 +63,12 @@ Here is an example of the result of the request IP `149.255.60.136` using the cl
             "categories": [
                 "reputation"
             ],
+            "currently_blacklisted": false,
             "first_seen": "2017-11-08T12:00:38.932354+00:00",
             "hits": [
                 {
                     "category": "reputation",
+                    "current_status": "absent",
                     "entries": "37968 unique IPs",
                     "feed_name": "hphosts_psh",
                     "first_seen": "2017-11-08T12:00:38.932354+00:00",
@@ -99,10 +102,11 @@ If the observable is not found in the application database, the response will lo
 ```
 {
     "blacklisted_count": 0,
+    "currently_blacklisted_count": 0,
     "feeds_available": 188,
     "request_time": "2018-02-02T14:31:17.291948+03:00",
     "requested_count": 1,
-    "results": {}
+    "results": []
 }
 ```
 
