@@ -7,11 +7,15 @@ from modules.general import General
 FeedsAlchemy = FeedsAlchemy()
 General = General()
 
+General.logger.info("API instance successfully started")
+
 
 @hug.post("/search")
 def search_api(body):
+    payload = body.read().decode("utf-8")
+
     try:
-        request_list = body.split(",")
+        request_list = payload.split(",")
 
         for request in request_list:
             if General.validate_request(request):
