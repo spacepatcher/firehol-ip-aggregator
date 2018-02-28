@@ -6,7 +6,7 @@ Some features of keeping and processing data:
 * Data deleted from reputation feed is not deleted from the application database. For such data, `last_removed` field is updated.
 * Field `timeline` is based on events of adding and removing item from reputation list.
 
-**Start application**
+### Start application
 
 To start the collection module and the API server, just type:
 ```
@@ -14,13 +14,17 @@ sudo docker-compose up -d
 ```
 The collection module will start automatically.
 
-**Important files**
+### Important files
 
 * `client.py` - simple python script for convenient interaction with FireHOL-IP-Aggregator API.
 * `conf/app.conf` - the main configuration file with several parameters.
 * `conf/postgresql.conf` - the main Postgres configuration file (generated with http://pgtune.leopard.in.ua/).
+* `app/entrypoint.sh` - the entry point for the application container.
+* `docker-persistence/app-data/log/run.log` - the main log file.
 
-The most important configuration parameters are listed in the table below.
+### Application configuration
+
+The most important configuration parameters from `conf/app.conf` are listed in the table below.
 
 | Parameter | Description |
 | ------ | ------ |
@@ -28,7 +32,19 @@ The most important configuration parameters are listed in the table below.
 | `"sync_period_h"` | Defines time period for syncing with FireHOL IP list repository |
 | `"firehol_ipsets_git"` | Defines FireHOL IP lists repository url |
 
-**Example usage**
+Also it's possible to change count of workers that process queries to API in `app/entrypoint.sh` by changing `--workers` argument value.
+```
+gunicorn --bind=0.0.0.0:8000 --workers=4 api:__hug_wsgi__
+```
+It's recommended to use 2 workers per 1 core (do not forget to change `max_connections` parameter in `conf/postgresql.conf`).
+
+To apply configuration changes you should rebuild containers:
+```
+sudo docker-compose down
+sudo docker-compose up --build
+```
+
+### Example usage
 
 Application is able to get search requests in IP or CIDR format, also in mixed list of both data types. To search, run the command:
 
@@ -89,4 +105,7 @@ If the observable is not found in the application database, the response will lo
     "results": {}
 }
 ```
-Also you can make requests by using python requests library.
+
+Also you can generate search requests using cURL:
+
+`curl -X POST —data 'body=8.8.8.8,1.1.1.1' localhost:8000/search`
