@@ -115,7 +115,7 @@ class FeedsAlchemy(Alchemy):
         finally:
             self.db_session.close()
 
-    def db_search_data(self, network_list, requested_count=0):
+    def db_search_data(self, network_list, requested_count=0, currently_blacklisted_count=0):
         request_time = pytz.utc.localize(datetime.utcnow()).astimezone(pytz.timezone("Europe/Moscow")).isoformat()
         results_grouped = list()
         results = dict()
@@ -149,16 +149,20 @@ class FeedsAlchemy(Alchemy):
 
                         filtered_results.append(result_dict)
 
-                results_grouped.extend(self.extend_result_data(filtered_results))
+                filtered_results_extended, currently_presented_count = self.extend_result_data(filtered_results)
+
+                results_grouped.extend(filtered_results_extended)
+                currently_blacklisted_count += currently_presented_count
 
             blacklisted_count = len(results_grouped)
 
             results.update({
-                "request_time":      request_time,
-                "feeds_available":   feeds_available,
-                "requested_count":   requested_count,
-                "blacklisted_count": blacklisted_count,
-                "results":           results_grouped
+                "request_time":                request_time,
+                "feeds_available":             feeds_available,
+                "requested_count":             requested_count,
+                "blacklisted_count":           blacklisted_count,
+                "currently_blacklisted_count": currently_blacklisted_count,
+                "results":                     results_grouped
             })
 
             return results
