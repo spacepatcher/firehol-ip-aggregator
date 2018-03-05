@@ -106,7 +106,7 @@ The most important configuration parameters from `conf/app.conf` are listed in t
 
 Also it's possible to change count of workers that process queries to API in `app/entrypoint.sh` by changing `--workers` argument value.
 ```
-gunicorn --bind=0.0.0.0:8000 --workers=4 api:__hug_wsgi__
+gunicorn --bind=0.0.0.0:8000 --workers=4 --timeout 3600 api:__hug_wsgi__
 ```
 It's recommended to use 2 workers per 1 core (do not forget to change `max_connections` parameter in `conf/postgresql.conf`).
 
