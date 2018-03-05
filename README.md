@@ -8,47 +8,19 @@ Some features of keeping and processing data:
 
 ### Start application
 
-To start the collection module and the API server, just type:
+To start the collection module and the HTTP-based API service, just type:
 ```
 sudo docker-compose up -d
 ```
 The collection module will start automatically.
 
-### Important files
+By default, the HTTP-based API service is available by port 8000.
 
-* `client.py` - simple python script for convenient interaction with FireHOL-IP-Aggregator API.
-* `conf/app.conf` - the main configuration file with several parameters.
-* `conf/postgresql.conf` - the main Postgres configuration file (generated with http://pgtune.leopard.in.ua/).
-* `app/entrypoint.sh` - the entry point for the application container.
-* `docker-persistence/app-data/log/run.log` - the main log file.
-
-### Application configuration
-
-The most important configuration parameters from `conf/app.conf` are listed in the table below.
-
-| Parameter | Description |
-| ------ | ------ |
-| `"unique_ips_limit"` | Defines the limit of the number of unique IP addresses in FireHOL feeds that will be aggregated (the goal is to filter out huge feeds) |
-| `"sync_period_h"` | Defines time period for syncing with FireHOL IP list repository |
-| `"firehol_ipsets_git"` | Defines FireHOL IP lists repository url |
-
-Also it's possible to change count of workers that process queries to API in `app/entrypoint.sh` by changing `--workers` argument value.
-```
-gunicorn --bind=0.0.0.0:8000 --workers=4 api:__hug_wsgi__
-```
-It's recommended to use 2 workers per 1 core (do not forget to change `max_connections` parameter in `conf/postgresql.conf`).
-
-To apply configuration changes you should rebuild containers:
-```
-sudo docker-compose down
-sudo docker-compose up --build
-```
-
-### Example usage
+### Usage
 
 Application is able to get search requests in IP or CIDR format, also in mixed list of both data types. To search, run the command:
 
-`python client.py -s 149.255.60.136` 
+`python client.py -s 149.255.60.136`
 
 Here is an example of the result of the request IP `149.255.60.136` using the client:
 ```
@@ -59,7 +31,7 @@ Here is an example of the result of the request IP `149.255.60.136` using the cl
     "request_time": "2018-02-02T14:27:59.957559+03:00",
     "requested_count": 1,
     "results": [
-        {    
+        {
             "categories": [
                 "reputation"
             ],
@@ -113,3 +85,33 @@ If the observable is not found in the application database, the response will lo
 Also you can generate search requests using cURL:
 
 `curl -X POST —data 'body=8.8.8.8,1.1.1.1' localhost:8000/search`
+
+### Important files
+
+* `client.py` - simple python script for convenient interaction with FireHOL-IP-Aggregator API.
+* `conf/app.conf` - the main configuration file with several parameters.
+* `conf/postgresql.conf` - the main Postgres configuration file (generated with http://pgtune.leopard.in.ua/).
+* `app/entrypoint.sh` - the entry point for the application container.
+* `docker-persistence/app-data/log/run.log` - the main log file.
+
+### Application configuration
+
+The most important configuration parameters from `conf/app.conf` are listed in the table below.
+
+| Parameter | Description |
+| ------ | ------ |
+| `"unique_ips_limit"` | Defines the limit of the number of unique IP addresses in FireHOL feeds that will be aggregated (the goal is to filter out huge feeds) |
+| `"sync_period_h"` | Defines time period for syncing with FireHOL IP list repository |
+| `"firehol_ipsets_git"` | Defines FireHOL IP lists repository url |
+
+Also it's possible to change count of workers that process queries to API in `app/entrypoint.sh` by changing `--workers` argument value.
+```
+gunicorn --bind=0.0.0.0:8000 --workers=4 api:__hug_wsgi__
+```
+It's recommended to use 2 workers per 1 core (do not forget to change `max_connections` parameter in `conf/postgresql.conf`).
+
+To apply configuration changes you should rebuild containers:
+```
+sudo docker-compose down
+sudo docker-compose up --build
+```
