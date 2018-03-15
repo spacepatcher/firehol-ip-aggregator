@@ -24,6 +24,7 @@ def read_file(filename):
 
 def validate_request(request):
     if NETWORK_re.match(request) or IP_re.match(request):
+
         return True
 
 

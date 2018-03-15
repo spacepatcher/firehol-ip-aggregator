@@ -62,10 +62,8 @@ class General:
 
     def validate_request(self, request):
         if self.net_re.match(request) or self.ip_re.match(request):
-            ip_network = request
 
-            if not netaddr.IPNetwork(ip_network).is_private():
-                return True
+            return True
 
     def get_cpu_count(self):
         return Semaphore(cpu_count()).get_value()
