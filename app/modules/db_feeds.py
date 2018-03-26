@@ -1,7 +1,7 @@
 import pytz
 import netaddr
 from datetime import datetime
-from sqlalchemy import exc
+from sqlalchemy import exc, func
 from sqlalchemy.sql import select, update, exists
 from sqlalchemy.dialects.postgresql import insert
 
@@ -171,10 +171,263 @@ class FeedsAlchemy(Alchemy):
             self.logger.error("Error: {}".format(e))
             self.logger.exception("Error while searching occurred")
 
-            return {"Error while searching occurred"}
+        finally:
+            self.db_session.close()
+
+            return {"errors": "Error while searching occurred"}
+
+    def db_feeds(self):
+        result = {
+            "result": {}
+        }
+
+        try:
+            select_query = select([self.meta_table])
+
+            raw_results = self.db_session.execute(select_query).fetchall()
+
+            feeds = list()
+            if raw_results:
+                for item in raw_results:
+                    result_dict = dict(zip(item.keys(), item))
+                    feeds.append(result_dict)
+
+                result["result"] = feeds
+
+            else:
+                result["result"] = {"error": "No information available"}
+
+            return result
+
+        except Exception as e:
+            self.logger.error("Error: {}".format(e))
+            self.logger.exception("Error while searching occurred")
 
         finally:
             self.db_session.close()
+
+    def db_categories(self):
+        result = {
+            "result": {}
+        }
+
+        try:
+            select_query = select([self.meta_table.c.category]).distinct()
+
+            raw_results = self.db_session.execute(select_query).fetchall()
+
+            categories = list()
+            if raw_results:
+                for item in raw_results:
+                    categories.extend(item)
+
+                result["result"] = categories
+
+            else:
+                result["result"] = {"error": "No information available"}
+
+            return result
+
+        except Exception as e:
+            self.logger.error("Error: {}".format(e))
+            self.logger.exception("Error while searching occurred")
+
+        finally:
+            self.db_session.close()
+
+    def db_all_maintainers(self):
+        result = {
+            "result": {}
+        }
+
+        try:
+            select_query = select([self.meta_table.c.maintainer]).distinct()
+
+            raw_results = self.db_session.execute(select_query).fetchall()
+
+            maintainers = list()
+            if raw_results:
+                for item in raw_results:
+                    maintainers.extend(item)
+
+                result["result"] = maintainers
+
+            else:
+                result["result"] = {"error": "No information available"}
+
+            return result
+
+        except Exception as e:
+            self.logger.error("Error: {}".format(e))
+            self.logger.exception("Error while searching occurred")
+
+        finally:
+            self.db_session.close()
+
+    def db_feed_info(self, feed_name):
+        result = {
+            "feed_name": feed_name,
+            "result": {}
+        }
+
+        try:
+            select_query = select([self.meta_table]).where(func.lower(self.meta_table.c.feed_name) == func.lower(feed_name))
+
+            raw_results = self.db_session.execute(select_query).fetchall()
+
+            feed_info = dict()
+            if raw_results:
+                for item in raw_results:
+                    feed_info = dict(zip(item.keys(), item))
+
+                result["result"] = feed_info
+
+            else:
+                result["result"] = {"error": "Feed {} not found".format(feed_name)}
+
+            return result
+
+        except Exception as e:
+            self.logger.error("Error: {}".format(e))
+            self.logger.exception("Error while searching occurred")
+
+        finally:
+            self.db_session.close()
+
+    def db_maintainer_info(self, maintainer):
+        result = {
+            "maintainer": maintainer,
+            "result": {}
+        }
+
+        try:
+            select_query = select([self.meta_table.c.feed_name, self.meta_table.c.maintainer_url, self.meta_table.c.category]) \
+                .distinct().where(func.lower(self.meta_table.c.maintainer) == func.lower(maintainer))
+
+            raw_results = self.db_session.execute(select_query).fetchall()
+
+            maintainer_url = ""
+            feed_names = set()
+            categories = set()
+            if raw_results:
+                for item in raw_results:
+                    result_dict = dict(zip(item.keys(), item))
+                    maintainer_url = result_dict.get("maintainer_url")
+                    feed_names.add(result_dict.get("feed_name"))
+                    categories.add(result_dict.get("category"))
+
+                maintainer_info = {
+                    "maintainer_url": maintainer_url,
+                    "feed_names": list(feed_names),
+                    "categories": list(categories)
+                }
+
+                result["result"] = maintainer_info
+
+            else:
+                result["result"] = {"error": "Maintainer {} not found".format(maintainer)}
+
+            return result
+
+        except Exception as e:
+            self.logger.error("Error: {}".format(e))
+            self.logger.exception("Error while searching occurred")
+
+        finally:
+            self.db_session.close()
+
+    def db_maintainers(self, category):
+        result = {
+            "category": category,
+            "result": {}
+        }
+
+        try:
+            select_query = select([self.meta_table.c.maintainer]).where(func.lower(self.meta_table.c.category) == func.lower(category))\
+                .distinct()
+
+            raw_results = self.db_session.execute(select_query).fetchall()
+
+            maintainers = list()
+            if raw_results:
+                for item in raw_results:
+                    maintainers.extend(item)
+
+                result["result"] = maintainers
+
+            else:
+                result["result"] = {"error": "Category {} not found".format(category)}
+
+            return result
+
+        except Exception as e:
+            self.logger.error("Error: {}".format(e))
+            self.logger.exception("Error while searching occurred")
+
+        finally:
+            self.db_session.close()
+
+    def db_ip_bulk(self, category):
+        result = {
+            "category": category,
+            "result": {}
+        }
+
+        try:
+            sql_query = "SELECT a.ip, m.feed_name FROM {aggregated_table_name} a, {meta_table_name} m WHERE " \
+                        "m.category = '{category}' AND a.feed_name = m.feed_name" \
+                .format(aggregated_table_name=self.aggregated_table.name, meta_table_name=self.meta_table.name, category=category)
+
+            raw_results = self.db_session.execute(sql_query).fetchall()
+
+            if raw_results:
+                ip_addresses = [r for r in raw_results]
+
+                result["result"] = {"count": len(ip_addresses), "ip_addresses": ip_addresses}
+
+            else:
+                result["result"] = {"error": "Category {} not found".format(category)}
+
+            return result
+
+        except Exception as e:
+            self.logger.error("Error: {}".format(e))
+            self.logger.exception("Error while searching occurred")
+
+        finally:
+            self.db_session.close()
+
+    # def db_ip_bulk_current(self, category):
+    #     result = {
+    #         "category": category,
+    #         "result": {}
+    #     }
+    #
+    #     try:
+    #         sql_query = "SELECT a.ip, m.feed_name FROM {aggregated_table_name} a, {meta_table_name} m WHERE " \
+    #                     "m.category = '{category}' AND a.feed_name = m.feed_name AND a.last_removed < a.last_added OR " \
+    #                     "a.last_removed IS NULL" \
+    #             .format(aggregated_table_name=self.aggregated_table.name, meta_table_name=self.meta_table.name,
+    #                     category=category)
+    #
+    #         raw_results = self.db_session.execute(sql_query).fetchall()
+    #
+    #         if raw_results:
+    #             ip_addresses = [r for r in raw_results]
+    #
+    #             result["result"] = {"count": len(ip_addresses), "ip_addresses": ip_addresses}
+    #
+    #         else:
+    #             result["result"] = {"error": "Category {} not found".format(category)}
+    #
+    #         return result
+    #
+    #     except Exception as e:
+    #         self.logger.error("Error: {}".format(e))
+    #         self.logger.exception("Error while searching occurred")
+    #
+    #     finally:
+    #         self.db_session.close()
 
     def db_clear_aggregated(self):
         try:
