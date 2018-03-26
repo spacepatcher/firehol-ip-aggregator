@@ -84,7 +84,7 @@ If the observable is not found in the application database, the response will lo
 
 Also you can generate search requests using cURL:
 
-`curl -X POST —data 'body=8.8.8.8,1.1.1.1' localhost:8000/search`
+`curl -X POST --data '8.8.8.8,1.1.1.1' -H 'Content-Type: text/html' localhost:8000/search`
 
 ### Important files
 

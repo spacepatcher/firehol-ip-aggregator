@@ -1,5 +1,4 @@
 import hug
-from falcon import HTTP_500
 
 from modules.db_feeds import FeedsAlchemy
 from modules.general import General
@@ -15,7 +14,10 @@ General.logger.info("API instance successfully started")
 def search(body):
     """Search IP in all available feeds. Input: a string containing IP addresses separated by commas in HTTP POST body"""
 
-    payload = body.read().decode("utf-8")
+    try:
+        payload = body.read().decode("utf-8")
+    except AttributeError:
+        payload = body
 
     try:
         request_list = payload.split(",")
