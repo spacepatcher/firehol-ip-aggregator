@@ -88,12 +88,3 @@ def ip_bulk(category: hug.types.text):
     category_lower = category.lower()
 
     return FeedsAlchemy.db_ip_bulk(category_lower)
-
-
-# @hug.get("/ip/bulk/by_category/current", output=hug.output_format.json, examples="category=abuse", version=1)
-# def ip_bulk_current(category: hug.types.text):
-#     """Retrieve all IP addresses that are currently in feeds by feed category"""
-#
-#     category_lower = category.lower()
-#
-#     return FeedsAlchemy.db_ip_bulk_current(category_lower)

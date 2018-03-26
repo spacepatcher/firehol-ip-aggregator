@@ -397,38 +397,6 @@ class FeedsAlchemy(Alchemy):
         finally:
             self.db_session.close()
 
-    # def db_ip_bulk_current(self, category):
-    #     result = {
-    #         "category": category,
-    #         "result": {}
-    #     }
-    #
-    #     try:
-    #         sql_query = "SELECT a.ip, m.feed_name FROM {aggregated_table_name} a, {meta_table_name} m WHERE " \
-    #                     "m.category = '{category}' AND a.feed_name = m.feed_name AND a.last_removed < a.last_added OR " \
-    #                     "a.last_removed IS NULL" \
-    #             .format(aggregated_table_name=self.aggregated_table.name, meta_table_name=self.meta_table.name,
-    #                     category=category)
-    #
-    #         raw_results = self.db_session.execute(sql_query).fetchall()
-    #
-    #         if raw_results:
-    #             ip_addresses = [r for r in raw_results]
-    #
-    #             result["result"] = {"count": len(ip_addresses), "ip_addresses": ip_addresses}
-    #
-    #         else:
-    #             result["result"] = {"error": "Category {} not found".format(category)}
-    #
-    #         return result
-    #
-    #     except Exception as e:
-    #         self.logger.error("Error: {}".format(e))
-    #         self.logger.exception("Error while searching occurred")
-    #
-    #     finally:
-    #         self.db_session.close()
-
     def db_clear_aggregated(self):
         try:
             sql_query = "TRUNCATE {aggregated_table_name} RESTART IDENTITY"\
