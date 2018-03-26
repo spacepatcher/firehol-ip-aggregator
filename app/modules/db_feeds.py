@@ -174,8 +174,6 @@ class FeedsAlchemy(Alchemy):
         finally:
             self.db_session.close()
 
-            return {"errors": "Error while searching occurred"}
-
     def db_feeds(self):
         result = {
             "result": {}
