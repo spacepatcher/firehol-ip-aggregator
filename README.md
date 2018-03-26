@@ -16,11 +16,25 @@ The collection module will start automatically.
 
 By default, the HTTP-based API service is available by port 8000.
 
-### Usage
+### API
 
-Application is able to get search requests in IP or CIDR format, also in mixed list of both data types. To search, run the command:
+There are several API-functions for obtaining various information about feeds:
 
-`python client.py -s 149.255.60.136`
+* POST `/search` - retrieve all information about requested IP or CIDR format objects
+* GET `/feeds` - retrieve all information about feeds
+* GET `/feeds/categories` - retrieve all feed categories
+* GET `/feeds/maintainers` - retrieve all feed maintainers
+* GET `/feed/info` - retrieve all available information about the feed by its name
+* GET `/maintainer/info` - retrieve all available information about the maintainer by its name
+* GET `/maintainers/by_category` - retrieve all maintainers by category
+* GET `/ip/bulk/by_category` - retrieve all IP addresses that are in feeds filtered by feed category
+
+### Example usage
+
+Application is able to get search requests in IP or CIDR format, also in mixed list of both data types (provided by `/search` function). To search, run the command:
+```
+python client.py -s 149.255.60.136
+```
 
 Here is an example of the result of the request IP `149.255.60.136` using the client:
 ```
@@ -82,9 +96,15 @@ If the observable is not found in the application database, the response will lo
 }
 ```
 
-Also you can generate search requests using cURL:
+To get more information about the client usage, type:
+```
+python client.py -h
+```
 
-`curl -X POST --data '8.8.8.8,1.1.1.1' -H 'Content-Type: text/html' localhost:8000/search`
+Also you can generate search requests using cURL:
+```
+curl -X POST --data '8.8.8.8,1.1.1.1' -H 'Content-Type: text/html' localhost:8000/search
+```
 
 ### Important files
 
