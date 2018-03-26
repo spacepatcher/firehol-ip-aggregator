@@ -372,14 +372,16 @@ class FeedsAlchemy(Alchemy):
         }
 
         try:
-            sql_query = "SELECT a.ip, m.feed_name FROM {aggregated_table_name} a, {meta_table_name} m WHERE " \
+            sql_query = "SELECT a.ip FROM {aggregated_table_name} a, {meta_table_name} m WHERE " \
                         "m.category = '{category}' AND a.feed_name = m.feed_name" \
                 .format(aggregated_table_name=self.aggregated_table.name, meta_table_name=self.meta_table.name, category=category)
 
             raw_results = self.db_session.execute(sql_query).fetchall()
 
+            ip_addresses = list()
             if raw_results:
-                ip_addresses = [r for r in raw_results]
+                for item in raw_results:
+                    ip_addresses.extend(item)
 
                 result["result"] = {"count": len(ip_addresses), "ip_addresses": ip_addresses}
 
