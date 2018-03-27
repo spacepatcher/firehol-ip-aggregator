@@ -29,6 +29,8 @@ There are several API-functions for obtaining various information about feeds:
 * GET `/maintainers/by_category` - retrieve all maintainers by category
 * GET `/ip/bulk/by_category` - retrieve all IP addresses that are in feeds filtered by feed category
 
+The API documentation is accessed by requesting any undefined URL.
+
 ### Example usage
 
 Application is able to get search requests in IP or CIDR format, also in mixed list of both data types (provided by `/search` function). To search, run the command:
