@@ -23,7 +23,7 @@ def search_api(body):
             else:
                 return {"errors": "Data validation error in '%s'" % request}
 
-        return FeedsAlchemy.db_search_data(list(set(request_list)))
+        return FeedsAlchemy.db_search(list(set(request_list)))
 
     except AttributeError:
 
@@ -31,24 +31,24 @@ def search_api(body):
 
 
 @hug.get("/feeds", output=hug.output_format.json, version=1)
-def categories():
+def feeds():
     """Retrieve all information about feeds"""
 
     return FeedsAlchemy.db_feeds()
 
 
 @hug.get("/feeds/categories", output=hug.output_format.json, version=1)
-def categories():
+def feeds_categories():
     """Retrieve all feed categories"""
 
-    return FeedsAlchemy.db_categories()
+    return FeedsAlchemy.db_feeds_categories()
 
 
 @hug.get("/feeds/maintainers", output=hug.output_format.json, version=1)
-def maintainers():
+def feeds_maintainers():
     """Retrieve all feed maintainers"""
 
-    return FeedsAlchemy.db_all_maintainers()
+    return FeedsAlchemy.db_feeds_maintainers()
 
 
 @hug.get("/feed/info", output=hug.output_format.json, examples="feed_name=hphosts_psh", version=1)
@@ -70,27 +70,18 @@ def maintainer_info(maintainer: hug.types.text):
 
 
 @hug.get("/maintainers/by_category", output=hug.output_format.json, examples="category=spam", version=1)
-def maintainer_info(category: hug.types.text):
+def maintainers_by_category(category: hug.types.text):
     """Retrieve all maintainers by category"""
 
     category = category.lower()
 
-    return FeedsAlchemy.db_maintainers(category)
+    return FeedsAlchemy.db_maintainers_by_category(category)
 
 
 @hug.get("/ip/bulk/by_category", output=hug.output_format.json, examples="category=reputation", version=1)
-def ip_bulk(category: hug.types.text):
+def ip_bulk_by_category(category: hug.types.text):
     """Retrieve all IP addresses that are in feeds by feed category"""
 
     category_lower = category.lower()
 
-    return FeedsAlchemy.db_ip_bulk(category_lower)
-
-
-# @hug.get("/ip/bulk/by_category/current", output=hug.output_format.json, examples="category=abuse", version=1)
-# def ip_bulk_current(category: hug.types.text):
-#     """Retrieve all IP addresses that are currently in feeds by feed category"""
-#
-#     category_lower = category.lower()
-#
-#     return FeedsAlchemy.db_ip_bulk_current(category_lower)
+    return FeedsAlchemy.db_ip_bulk_by_category(category_lower)
