@@ -115,7 +115,7 @@ class FeedsAlchemy(Alchemy):
         finally:
             self.db_session.close()
 
-    def db_search(self, network_list, requested_count=0, currently_blacklisted_count=0):
+    def db_search_data(self, network_list, requested_count=0, currently_blacklisted_count=0):
         request_time = pytz.utc.localize(datetime.utcnow()).astimezone(pytz.timezone("Europe/Moscow")).isoformat()
         results_grouped = list()
         results = dict()
@@ -206,7 +206,7 @@ class FeedsAlchemy(Alchemy):
         finally:
             self.db_session.close()
 
-    def db_feeds_categories(self):
+    def db_categories(self):
         result = {
             "result": {}
         }
@@ -235,7 +235,7 @@ class FeedsAlchemy(Alchemy):
         finally:
             self.db_session.close()
 
-    def db_feeds_maintainers(self):
+    def db_all_maintainers(self):
         result = {
             "result": {}
         }
@@ -336,7 +336,7 @@ class FeedsAlchemy(Alchemy):
         finally:
             self.db_session.close()
 
-    def db_maintainers_by_category(self, category):
+    def db_maintainers(self, category):
         result = {
             "category": category,
             "result": {}
@@ -367,7 +367,7 @@ class FeedsAlchemy(Alchemy):
         finally:
             self.db_session.close()
 
-    def db_ip_bulk_by_category(self, category):
+    def db_ip_bulk(self, category):
         result = {
             "category": category,
             "result": {}
