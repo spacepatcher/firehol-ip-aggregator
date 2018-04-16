@@ -16,9 +16,9 @@ The collection module will start automatically.
 
 By default, the HTTP-based API service is available by port 8000.
 
-### Usage
+### API
 
-Application is able to get search requests in IP or CIDR format, also in mixed list of both data types. To search, run the command:
+There are several API-functions for obtaining various information about feeds:
 
 * POST `/search` - retrieve all information about requested IP or CIDR format objects
 * GET `/feeds` - retrieve all information about feeds
@@ -98,9 +98,15 @@ If the observable is not found in the application database, the response will lo
 }
 ```
 
-Also you can generate search requests using cURL:
+To get more information about the client usage, type:
+```
+python client.py -h
+```
 
-`curl -X POST —data 'body=8.8.8.8,1.1.1.1' localhost:8000/search`
+Also you can generate search requests using cURL:
+```
+curl -X POST --data '8.8.8.8,1.1.1.1' -H 'Content-Type: text/html' localhost:8000/search
+```
 
 ### Important files
 
