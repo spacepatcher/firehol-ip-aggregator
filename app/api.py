@@ -16,23 +16,24 @@ def search(body):
 
     try:
         payload = body.read().decode("utf-8")
+
     except AttributeError:
         payload = body
 
-    try:
-        request_list = payload.split(",")
+    payload = payload.split(",")
 
-        for request in request_list:
-            if General.validate_request(request):
+    if isinstance(payload, list):
+        for item in payload:
+            if General.validate_request(item):
                 pass
+
             else:
-                return {"errors": "Data validation error in '%s'" % request}
+                return {"errors": "Data validation error in '%s'" % item}
 
-        return FeedsAlchemy.db_search(list(set(request_list)))
+    else:
+        return {"errors": "Got an unrecognized structure"}
 
-    except AttributeError:
-
-        return {"errors": "Error while searching occurred"}
+    return FeedsAlchemy.db_search(list(set(payload)))
 
 
 @hug.get("/feeds", output=hug.output_format.json, version=1)

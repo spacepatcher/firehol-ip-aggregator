@@ -4,7 +4,7 @@ import requests
 
 logger = logging.getLogger('fia_client')
 
-network_re = re.compile("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(/([0-9]|[1-2][0-9]|3[0-2]))$")
+net_re = re.compile("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(/([0-9]|[1-2][0-9]|3[0-2]))$")
 ip_re = re.compile("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$")
 word_re = re.compile("\w+")
 
@@ -13,7 +13,7 @@ class FIAClient(object):
     def __init__(self, fia_url):
         self.fia_url = fia_url
 
-        self.network_re = network_re
+        self.net_re = net_re
         self.ip_re = ip_re
         self.word_re = word_re
 
@@ -24,14 +24,20 @@ class FIAClient(object):
 
         url = self.fia_url + path
 
-        if self._validate_network_list(payload):
-            payload = ",".join(payload)
-            print(payload)
+        if isinstance(payload, list):
+            for item in payload:
+                if self._validate_request(item):
+                    pass
 
-            return self._request_post(url, payload)
+                else:
+                    return {"errors": "Data validation error in '%s'" % item}
 
         else:
-            return {"errors": "Data validation error occurred"}
+            return {"errors": "Got an unrecognized structure"}
+
+        payload = ",".join(payload)
+
+        return self._request_post(url, payload)
 
     def feeds_categories(self):
         """Retrieve all feed categories"""
@@ -101,23 +107,10 @@ class FIAClient(object):
 
         return self._request_get(url, payload)
 
-    def _validate_network_list(self, payload):
-        if isinstance(payload, list):
-            passed = True
+    def _validate_request(self, request):
+        if self.net_re.match(request) or self.ip_re.match(request):
 
-            for item in payload:
-                if self.network_re.match(item) or self.ip_re.match(item):
-                    pass
-
-                else:
-                    passed = False
-
-                    break
-
-        else:
-            passed = False
-
-        return passed
+            return True
 
     def _clear_request(self, unfiltered):
         filtered = self.word_re.search(unfiltered)
