@@ -10,24 +10,30 @@ General = General()
 General.logger.info("API instance successfully started")
 
 
-@hug.post("/search")
-def search_api(body):
-    payload = body.read().decode("utf-8")
+@hug.post("/search", output=hug.output_format.json, version=1)
+def search(body):
+    """Search IP in all available feeds. Input: a string containing IP addresses separated by commas in HTTP POST body"""
 
     try:
-        request_list = payload.split(",")
-
-        for request in request_list:
-            if General.validate_request(request):
-                pass
-            else:
-                return {"errors": "Data validation error in '%s'" % request}
-
-        return FeedsAlchemy.db_search(list(set(request_list)))
+        payload = body.read().decode("utf-8")
 
     except AttributeError:
+        payload = body
 
-        return {"errors": "Error while searching occurred"}
+    payload = payload.split(",")
+
+    if isinstance(payload, list):
+        for item in payload:
+            if General.validate_request(item):
+                pass
+
+            else:
+                return {"errors": "Data validation error in '%s'" % item}
+
+    else:
+        return {"errors": "Got an unrecognized structure"}
+
+    return FeedsAlchemy.db_search(list(set(payload)))
 
 
 @hug.get("/feeds", output=hug.output_format.json, version=1)
