@@ -126,7 +126,6 @@ class FIAClient(object):
     def _request_post(self, url, payload):
         try:
             r = requests.post(url, data=payload)
-            print(r)
 
             if r.status_code == 200:
                 data = r.json()

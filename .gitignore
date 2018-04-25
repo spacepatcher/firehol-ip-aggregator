@@ -131,7 +131,7 @@ fabric.properties
 [Ss]cripts
 pyvenv.cfg
 pip-selfcheck.json
-venv_3.5
+venv_*
 
 
 ### Custom

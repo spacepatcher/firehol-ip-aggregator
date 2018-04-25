@@ -22,9 +22,9 @@ There are several API-functions for obtaining various information about feeds:
 
 * POST `/search` - retrieve all information about requested IP or CIDR format objects
 * GET `/feeds` - retrieve all information about feeds
+* GET `/feed/info` - retrieve all available information about the feed by its name
 * GET `/feeds/categories` - retrieve all feed categories
 * GET `/feeds/maintainers` - retrieve all feed maintainers
-* GET `/feed/info` - retrieve all available information about the feed by its name
 * GET `/maintainer/info` - retrieve all available information about the maintainer by its name
 * GET `/maintainers/by_category` - retrieve all maintainers by category
 * GET `/ip/bulk/by_category` - retrieve all IP addresses that are in feeds filtered by feed category
@@ -84,8 +84,8 @@ Here is an example of the result of the request IP `149.255.60.136` using the cl
         }
     ]
 }
-
 ```
+
 If the observable is not found in the application database, the response will look like this:
 ```
 {
