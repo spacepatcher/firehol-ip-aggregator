@@ -18,10 +18,10 @@ setup(
     author_email='mycardinalmail@gmail.com',
     license='MIT',
     classifiers=[],
-    keywords='client threat_intelligence FireHOL-IP-Aggregator',
+    keywords='client threat_intelligence FireHOL-IP-Aggregator reputation',
     project_urls={
-        'Documentation': '',
-        'Source': 'https://github.com/spacepatcher/FireHOL-IP-Aggregator',
+        'Documentation': 'https://github.com/spacepatcher/FireHOL-IP-Aggregator/blob/api-client/client/README.md',
+        'Source': 'https://github.com/spacepatcher/FireHOL-IP-Aggregator/blob/master/README.md',
         'Tracker': 'https://github.com/spacepatcher/FireHOL-IP-Aggregator/issues',
     },
     install_requires=['requests'],
