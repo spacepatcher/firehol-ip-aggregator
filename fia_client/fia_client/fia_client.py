@@ -18,7 +18,15 @@ class FIAClient(object):
         self.word_re = word_re
 
     def search(self, payload):
-        """Retrieve all information about feeds"""
+        """Search for a list of IP objects in all available feeds.
+
+        Args:
+            payload (list): A list of IP objects (CIDR format is also possible).
+
+        Returns:
+            dict: All information about requested the list of IP objects.
+
+        """
 
         path = "/search"
 
@@ -40,7 +48,12 @@ class FIAClient(object):
         return self._request_post(url, payload)
 
     def feeds_categories(self):
-        """Retrieve all feed categories"""
+        """Retrieve all feed categories.
+
+        Returns:
+            dict: All feed categories.
+
+        """
 
         path = "/feeds/categories"
 
@@ -50,7 +63,12 @@ class FIAClient(object):
         return self._request_get(url, payload)
 
     def feeds_maintainers(self):
-        """Retrieve all feed maintainers"""
+        """Retrieve all feed maintainers.
+
+        Returns:
+            dict: All feed maintainers.
+
+        """
 
         path = "/feeds/maintainers"
 
@@ -60,7 +78,15 @@ class FIAClient(object):
         return self._request_get(url, payload)
 
     def feed_info(self, feed_name):
-        """Retrieve all available information about the feed by its name"""
+        """Retrieve all available information about the feed by its name.
+
+        Args:
+            feed_name (str): A feed name.
+
+        Returns:
+            dict: All available information about the feed by its name.
+
+        """
 
         path = "/feed/info"
 
@@ -72,7 +98,15 @@ class FIAClient(object):
         return self._request_get(url, payload)
 
     def maintainer_info(self, maintainer):
-        """Retrieve all available information about the maintainer by its name"""
+        """Retrieve all available information about the maintainer by its name.
+
+        Args:
+            maintainer (str): A maintainer name.
+
+        Returns:
+            dict: All available information about the maintainer by its name.
+
+        """
 
         path = "/maintainer/info"
 
@@ -84,7 +118,15 @@ class FIAClient(object):
         return self._request_get(url, payload)
 
     def maintainers_by_category(self, category):
-        """Retrieve all maintainers by category"""
+        """Retrieve all maintainers by category.
+
+        Args:
+            category (str): A maintainers category.
+
+        Returns:
+            dict: All maintainers by category.
+
+        """
 
         path = "/maintainers/by_category"
 
@@ -96,7 +138,15 @@ class FIAClient(object):
         return self._request_get(url, payload)
 
     def ip_bulk_by_category(self, category):
-        """Retrieve all IP addresses that are in feeds by feed category"""
+        """Retrieve all IP addresses that are in feeds by feed category.
+
+        Args:
+            category (str): A feed category.
+
+        Returns:
+            dict: All IP addresses that are in feeds by the feed category.
+
+        """
 
         path = "/ip/bulk/by_category"
 
