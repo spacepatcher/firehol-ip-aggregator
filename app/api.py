@@ -12,7 +12,7 @@ General.logger.info("API instance successfully started")
 
 @hug.post("/search", output=hug.output_format.json, version=1)
 def search(body):
-    """Search IP in all available feeds. Input: a string containing IP addresses separated by commas in HTTP POST body"""
+    """Search for a list of IP objects in all available feeds. Input: a string containing IP addresses separated by commas in HTTP POST body"""
 
     try:
         payload = body.read().decode("utf-8")
