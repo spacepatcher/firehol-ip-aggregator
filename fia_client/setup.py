@@ -12,7 +12,7 @@ setup(
     version='0.1.1',
     description='A simple client for FIA API (https://github.com/spacepatcher/FireHOL-IP-Aggregator)',
     long_description=long_description,
-    long_description_content_type='text/x-rst',
+    long_description_content_type='text/markdown',
     url='https://github.com/spacepatcher/FireHOL-IP-Aggregator',
     author='spacepatcher',
     author_email='mycardinalmail@gmail.com',
