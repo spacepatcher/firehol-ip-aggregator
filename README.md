@@ -47,7 +47,7 @@ from fia_client import fia_client
 client = fia_client.FIAClient(fia_url="http://127.0.0.1:8000/")
 ```
 
-To get information about `fia-client` package visit https://github.com/spacepatcher/FireHOL-IP-Aggregator/blob/api-client/fia_client/README.md.
+To get information about `fia-client` package visit https://github.com/spacepatcher/FireHOL-IP-Aggregator/blob/develop/fia_client/README.md.
 
 The application is able to get search requests in IP or CIDR format, also in mixed list of both data types. To search, run the command in python3 console:
 ```
