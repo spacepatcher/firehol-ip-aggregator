@@ -20,7 +20,7 @@ setup(
     classifiers=[],
     keywords='client threat_intelligence FireHOL-IP-Aggregator reputation',
     project_urls={
-        'Documentation': 'https://github.com/spacepatcher/FireHOL-IP-Aggregator/blob/api-client/client/README.md',
+        'Documentation': 'https://github.com/spacepatcher/FireHOL-IP-Aggregator/blob/api-client/fia_client/README.md',
         'Source': 'https://github.com/spacepatcher/FireHOL-IP-Aggregator/blob/master/README.md',
         'Tracker': 'https://github.com/spacepatcher/FireHOL-IP-Aggregator/issues',
     },
