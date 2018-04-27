@@ -1,4 +1,5 @@
 # Aggregator of FireHOL IP lists
+
 Аpplication for keeping feeds from <a href="https://github.com/firehol/blocklist-ipsets" target="_blank">blocklist-ipsets</a> (only *.netset and *.ipset files are aggregated) in PostgreSQL with including historical changes. For requests developed HTTP-based API service. 
 
 Some features of keeping and processing data:
@@ -22,9 +23,9 @@ There are several API-functions for obtaining various information about feeds:
 
 * POST `/search` - retrieve all information about requested IP or CIDR format objects
 * GET `/feeds` - retrieve all information about feeds
+* GET `/feed/info` - retrieve all available information about the feed by its name
 * GET `/feeds/categories` - retrieve all feed categories
 * GET `/feeds/maintainers` - retrieve all feed maintainers
-* GET `/feed/info` - retrieve all available information about the feed by its name
 * GET `/maintainer/info` - retrieve all available information about the maintainer by its name
 * GET `/maintainers/by_category` - retrieve all maintainers by category
 * GET `/ip/bulk/by_category` - retrieve all IP addresses that are in feeds filtered by feed category
@@ -33,12 +34,27 @@ The API documentation is accessed by requesting any undefined URL.
 
 ### Example usage
 
-Application is able to get search requests in IP or CIDR format, also in mixed list of both data types (provided by `/search` function). To search, run the command:
+A simple python3 package `fia-client` in designed as a client for FireHOL-IP-Aggregator API.
+
+Install the package with pip:
 ```
-python client.py -s 149.255.60.136
+pip install fia-client
 ```
 
-Here is an example of the result of the request IP `149.255.60.136` using the client:
+Get a client object in python3 console:
+```
+from fia_client import fia_client
+client = fia_client.FIAClient(fia_url="http://127.0.0.1:8000/")
+```
+
+To get information about `fia-client` package visit https://github.com/spacepatcher/FireHOL-IP-Aggregator/blob/develop/fia_client/README.md.
+
+The application is able to get search requests in IP or CIDR format, also in mixed list of both data types. To search, run the command in python3 console:
+```
+result = client.search(payload=["149.255.60.136"])
+```
+
+Here is an example of the result of the requested payload:
 ```
 {
     "blacklisted_count": 1,
@@ -84,8 +100,8 @@ Here is an example of the result of the request IP `149.255.60.136` using the cl
         }
     ]
 }
-
 ```
+
 If the observable is not found in the application database, the response will look like this:
 ```
 {
@@ -98,11 +114,6 @@ If the observable is not found in the application database, the response will lo
 }
 ```
 
-To get more information about the client usage, type:
-```
-python client.py -h
-```
-
 Also you can generate search requests using cURL:
 ```
 curl -X POST --data '8.8.8.8,1.1.1.1' -H 'Content-Type: text/html' localhost:8000/search
@@ -110,7 +121,6 @@ curl -X POST --data '8.8.8.8,1.1.1.1' -H 'Content-Type: text/html' localhost:800
 
 ### Important files
 
-* `client.py` - simple python script for convenient interaction with FireHOL-IP-Aggregator API.
 * `conf/app.conf` - the main configuration file with several parameters.
 * `conf/postgresql.conf` - the main Postgres configuration file (generated with http://pgtune.leopard.in.ua/).
 * `app/entrypoint.sh` - the entry point for the application container.
@@ -130,6 +140,7 @@ Also it's possible to change count of workers that process queries to API in `ap
 ```
 gunicorn --bind=0.0.0.0:8000 --workers=4 --timeout 3600 api:__hug_wsgi__
 ```
+
 It's recommended to use 2 workers per 1 core (do not forget to change `max_connections` parameter in `conf/postgresql.conf`).
 
 To apply configuration changes you should rebuild containers:
