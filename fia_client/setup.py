@@ -9,7 +9,7 @@ with open(path.join(here, 'README.md')) as f:
 
 setup(
     name='fia-client',
-    version='1.1.1.dev',
+    version='1.1.2.dev',
     description='A simple client for FIA API (https://github.com/spacepatcher/FireHOL-IP-Aggregator)',
     long_description=long_description,
     long_description_content_type='text/markdown',
