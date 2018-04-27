@@ -8,8 +8,8 @@ with open(path.join(here, 'README.md')) as f:
     long_description = f.read()
 
 setup(
-    name='fia-client',
-    version='1.1.2.dev',
+    name='fiaclient',
+    version='1.1.3.dev',
     description='A simple client for FIA API (https://github.com/spacepatcher/FireHOL-IP-Aggregator)',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -20,8 +20,8 @@ setup(
     classifiers=[],
     keywords='client threat_intelligence FireHOL-IP-Aggregator reputation',
     project_urls={
-        'Documentation': 'https://github.com/spacepatcher/FireHOL-IP-Aggregator/blob/develop/fia_client/README.md',
-        'Source': 'https://github.com/spacepatcher/FireHOL-IP-Aggregator/tree/develop/fia_client',
+        'Documentation': 'https://github.com/spacepatcher/FireHOL-IP-Aggregator/blob/develop/fiaclient/README.md',
+        'Source': 'https://github.com/spacepatcher/FireHOL-IP-Aggregator/tree/develop/fiaclient',
         'Tracker': 'https://github.com/spacepatcher/FireHOL-IP-Aggregator/issues',
     },
     install_requires=['requests'],
