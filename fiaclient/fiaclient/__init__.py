@@ -13,4 +13,4 @@ try:
     import requests
 
 except ImportError as e:
-    logger.error('Unable to load fia_client properly: {}'.format(e))
+    logger.error('Unable to load fiaclient properly: {}'.format(e))
