@@ -34,20 +34,20 @@ The API documentation is accessed by requesting any undefined URL.
 
 ### Example usage
 
-A simple python3 package `fia-client` in designed as a client for FireHOL-IP-Aggregator API.
+A simple python3 package `fiaclient` in designed as a client for FireHOL-IP-Aggregator API.
 
 Install the package with pip:
 ```
-pip install fia-client
+pip install fiaclient
 ```
 
 Get a client object in python3 console:
 ```
-from fia_client import fia_client
-client = fia_client.FIAClient(fia_url="http://127.0.0.1:8000/")
+from fiaclient import fiaclient
+client = fiaclient.FIAClient(fia_url="http://127.0.0.1:8000/")
 ```
 
-To get information about `fia-client` package visit https://github.com/spacepatcher/FireHOL-IP-Aggregator/blob/develop/fia_client/README.md.
+To get information about `fiaclient` package visit https://github.com/spacepatcher/FireHOL-IP-Aggregator/blob/develop/fiaclient/README.md.
 
 The application is able to get search requests in IP or CIDR format, also in mixed list of both data types. To search, run the command in python3 console:
 ```
