@@ -11,7 +11,7 @@ pip install fiaclient
 
 Create client object from python3 console:
 ```
-import fiaclient
+from fiaclient import fiaclient
 client = fiaclient.FIAClient(fiaurl="http://127.0.0.1:8000/")
 ```
 

@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 from os import path
 
 
@@ -9,7 +9,7 @@ with open(path.join(here, 'README.md')) as f:
 
 setup(
     name='fiaclient',
-    version='1.1.3.dev',
+    version='1.1.9',
     description='A simple client for FIA API (https://github.com/spacepatcher/FireHOL-IP-Aggregator)',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -24,6 +24,7 @@ setup(
         'Source': 'https://github.com/spacepatcher/FireHOL-IP-Aggregator/tree/develop/fiaclient',
         'Tracker': 'https://github.com/spacepatcher/FireHOL-IP-Aggregator/issues',
     },
+    packages=find_packages(),
     install_requires=['requests'],
     python_requires='>=3',
 )
