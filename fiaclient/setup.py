@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 from os import path
 
 
@@ -24,6 +24,7 @@ setup(
         'Source': 'https://github.com/spacepatcher/FireHOL-IP-Aggregator/tree/develop/fiaclient',
         'Tracker': 'https://github.com/spacepatcher/FireHOL-IP-Aggregator/issues',
     },
+    packages=find_packages(),
     install_requires=['requests'],
     python_requires='>=3',
 )
