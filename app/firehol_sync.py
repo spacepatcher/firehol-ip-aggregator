@@ -3,6 +3,7 @@ import time
 import pickle
 import git
 import unidiff
+import requests
 from multiprocessing import Pool
 from subprocess import run, CalledProcessError
 
@@ -16,6 +17,20 @@ FeedsAlchemy = FeedsAlchemy()
 class SyncGit(General):
     def __init__(self):
         super().__init__()
+
+    def check_network(self, is_available=False):
+        url = "https://github.com"
+        timeout = 5
+
+        try:
+            _ = requests.get(url, timeout=timeout)
+            is_available = True
+
+        except requests.ConnectionError:
+            self.logger.error("github.com is not available due to network problems")
+
+        finally:
+            return is_available
 
     def clone_from_remote(self):
         SyncGit.logger.info("Cloning Firehol repo from remote origin")
@@ -234,69 +249,70 @@ if __name__ == "__main__":
     while True:
         SyncGit.logger.info("Started sync_git_repo()")
 
-        if not os.path.exists(SyncGit.repo_path):
-            SyncGit.clone_from_remote()
-            feed_files_path_list = SyncGit.get_files(SyncGit.repo_path)
+        if SyncGit.check_network():
+            if not os.path.exists(SyncGit.repo_path):
+                SyncGit.clone_from_remote()
+                feed_files_path_list = SyncGit.get_files(SyncGit.repo_path)
 
-            if feed_files_path_list:
-                SyncGit.logger.info("After cloning found %d new file(s)" % len(feed_files_path_list))
-
-                try:
-                    pool = Pool(SyncGit.get_cpu_count())
-                    pool.map(sync_with_db_new, feed_files_path_list)
-                    pool.close()
-                    pool.join()
-                    SyncGit.logger.info("Parallel feeds processing finished")
-
-                except Exception:
-                    SyncGit.logger.exception("Error in multiprocessing occurred")
-
-                refresh_aggregated()
-                SyncGit.logger.info("Aggregation table refreshed")
-
-            else:
-                SyncGit.logger.warning("Local repository is empty")
-
-        else:
-            diff = SyncGit.fetch_diff()
-
-            try:
-                if diff.added_files:
-                    SyncGit.logger.info("After fetching found %d new file(s)" % len(diff.added_files))
-                    new_feeds_path = ["%s/%s" % (SyncGit.repo_path, added_files.target_file[2:]) for added_files in diff.added_files]
+                if feed_files_path_list:
+                    SyncGit.logger.info("After cloning found %d new file(s)" % len(feed_files_path_list))
 
                     try:
                         pool = Pool(SyncGit.get_cpu_count())
-                        pool.map(sync_with_db_new, new_feeds_path)
+                        pool.map(sync_with_db_new, feed_files_path_list)
                         pool.close()
                         pool.join()
+                        SyncGit.logger.info("Parallel feeds processing finished")
 
                     except Exception:
                         SyncGit.logger.exception("Error in multiprocessing occurred")
 
-                    SyncGit.logger.info("Parallel feeds processing finished")
-
-                if diff.modified_files:
-                    SyncGit.logger.info("After fetching found %d modified file(s)" % len(diff.modified_files))
-                    modified_feeds_serialized = [pickle.dumps(modified_files) for modified_files in diff.modified_files]
-
-                    try:
-                        pool = Pool(SyncGit.get_cpu_count())
-                        pool.map(sync_with_db_diff, modified_feeds_serialized)
-                        pool.close()
-                        pool.join()
-
-                    except Exception:
-                        SyncGit.logger.exception("Error in multiprocessing occurred")
-
-                    SyncGit.logger.info("Parallel feeds processing finished")
-
-                if diff.added_files or diff.modified_files:
                     refresh_aggregated()
                     SyncGit.logger.info("Aggregation table refreshed")
 
-            except AttributeError:
-                SyncGit.logger.exception("Diff data has an unrecognized structure")
+                else:
+                    SyncGit.logger.warning("Local repository is empty")
+
+            else:
+                diff = SyncGit.fetch_diff()
+
+                try:
+                    if diff.added_files:
+                        SyncGit.logger.info("After fetching found %d new file(s)" % len(diff.added_files))
+                        new_feeds_path = ["%s/%s" % (SyncGit.repo_path, added_files.target_file[2:]) for added_files in diff.added_files]
+
+                        try:
+                            pool = Pool(SyncGit.get_cpu_count())
+                            pool.map(sync_with_db_new, new_feeds_path)
+                            pool.close()
+                            pool.join()
+
+                        except Exception:
+                            SyncGit.logger.exception("Error in multiprocessing occurred")
+
+                        SyncGit.logger.info("Parallel feeds processing finished")
+
+                    if diff.modified_files:
+                        SyncGit.logger.info("After fetching found %d modified file(s)" % len(diff.modified_files))
+                        modified_feeds_serialized = [pickle.dumps(modified_files) for modified_files in diff.modified_files]
+
+                        try:
+                            pool = Pool(SyncGit.get_cpu_count())
+                            pool.map(sync_with_db_diff, modified_feeds_serialized)
+                            pool.close()
+                            pool.join()
+
+                        except Exception:
+                            SyncGit.logger.exception("Error in multiprocessing occurred")
+
+                        SyncGit.logger.info("Parallel feeds processing finished")
+
+                    if diff.added_files or diff.modified_files:
+                        refresh_aggregated()
+                        SyncGit.logger.info("Aggregation table refreshed")
+
+                except AttributeError:
+                    SyncGit.logger.exception("Diff data has an unrecognized structure")
 
         SyncGit.logger.info("Sleep for %d hour(s)" % (period / 3600))
         time.sleep(period)
