@@ -33,13 +33,13 @@ class SyncGit(General):
             return is_available
 
     def clone_from_remote(self):
-        SyncGit.logger.info("Cloning Firehol repo from remote origin")
+        SyncGit.logger.info("Cloning FireHOL repo from remote origin")
 
         try:
             run(["mkdir -p %s" % self.repo_path], shell=True, check=True)
             run(["git clone %s %s" % (self.firehol_ipsets_git, self.repo_path)], shell=True, check=True)
             run(["cd %s ; git checkout master" % self.repo_path], shell=True, check=True)
-            self.logger.info("Successfully cloned Firehol repo from remote origin")
+            self.logger.info("Successfully cloned FireHOL repo from remote origin")
 
         except CalledProcessError:
             self.logger.exception("CalledProcessError occurred")
@@ -133,13 +133,13 @@ class SyncGit(General):
                 break
 
         meta.update({
-            "feed_name": feed_name,
-            "list_source_url": list_source_url,
-            "maintainer": maintainer,
-            "maintainer_url": maintainer_url,
+            "feed_name":        feed_name,
+            "list_source_url":  list_source_url,
+            "maintainer":       maintainer,
+            "maintainer_url":   maintainer_url,
             "source_file_date": source_file_date,
-            "category": category,
-            "entries": entries
+            "category":         category,
+            "entries":          entries
         })
 
         return meta
@@ -247,7 +247,7 @@ if __name__ == "__main__":
     period = 3600 * int(SyncGit.sync_period_h)
 
     while True:
-        SyncGit.logger.info("Started sync_git_repo()")
+        SyncGit.logger.info("Syncing with remote repository")
 
         if SyncGit.check_network():
             if not os.path.exists(SyncGit.repo_path):
