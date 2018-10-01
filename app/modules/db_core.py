@@ -16,8 +16,8 @@ class Alchemy(General):
     def __init__(self):
         super().__init__()
 
-        self.feeds_meta_table = "feeds_meta"
-        self.feeds_aggregated_table = "feeds_aggregated"
+        self.meta_table_name = "feeds_meta"
+        self.aggregated_table_name = "feeds_aggregated"
         self.connection_string = "postgresql://%s:%s@%s:5432/%s" \
                                  % (self.database_user, self.database_password, self.server_address, self.database_name)
         self.metadata = MetaData()
@@ -70,7 +70,7 @@ class Alchemy(General):
         return feed_table
 
     def get_meta_table_object(self):
-        meta_table = Table(self.feeds_meta_table, self.metadata,
+        meta_table = Table(self.meta_table_name, self.metadata,
             Column("feed_name", TEXT, primary_key=True),
             Column("maintainer", TEXT),
             Column("maintainer_url", TEXT),
@@ -89,7 +89,7 @@ class Alchemy(General):
         return meta_table
 
     def get_aggregated_table_object(self):
-        aggregated_table = Table(self.feeds_aggregated_table, self.metadata,
+        aggregated_table = Table(self.aggregated_table_name, self.metadata,
             Column("id", Integer, primary_key=True),
             Column("ip", INET, index=True, unique=False),
             Column("first_seen", DateTime(timezone=True)),

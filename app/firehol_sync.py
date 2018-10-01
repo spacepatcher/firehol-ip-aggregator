@@ -314,5 +314,5 @@ if __name__ == "__main__":
                 except AttributeError:
                     SyncGit.logger.exception("Diff data has an unrecognized structure")
 
-        SyncGit.logger.info("Sleep for %d hour(s)" % (period / 3600))
+        SyncGit.logger.info("Sleep for %d minute(s)" % (period / 60))
         time.sleep(period)
