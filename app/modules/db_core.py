@@ -53,10 +53,8 @@ class Alchemy(General):
         exit(1)
 
     def get_feed_table_object(self, table_name):
-        sequence_name = table_name + "_id_seq"
-
         feed_table = Table(table_name, self.metadata,
-            Column("id", Integer, Sequence(sequence_name, metadata=self.metadata),  primary_key=True),
+            Column("id", Integer, primary_key=True),
             Column("ip", INET, index=True, unique=True),
             Column("first_seen", DateTime(timezone=True)),
             Column("last_added", DateTime(timezone=True)),
@@ -88,8 +86,8 @@ class Alchemy(General):
 
         return meta_table
 
-    def get_aggregated_table_object(self):
-        aggregated_table = Table(self.aggregated_table_name, self.metadata,
+    def get_aggregated_table_object(self, table_name):
+        aggregated_table = Table(table_name, self.metadata,
             Column("id", Integer, primary_key=True),
             Column("ip", INET, index=True, unique=False),
             Column("first_seen", DateTime(timezone=True)),

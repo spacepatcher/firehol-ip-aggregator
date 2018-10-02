@@ -14,7 +14,7 @@ class FeedsAlchemy(Alchemy):
 
         self.db_session = self.get_db_session()
         self.meta_table = self.get_meta_table_object()
-        self.aggregated_table = self.get_aggregated_table_object()
+        self.aggregated_table = self.get_aggregated_table_object(self.aggregated_table_name)
 
     def db_update_metatable(self, feed_data):
         feed_meta = feed_data.get("feed_meta")
