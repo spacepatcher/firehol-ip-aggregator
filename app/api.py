@@ -36,6 +36,19 @@ def search(body):
     return FeedsAlchemy.db_search(list(set(payload)))
 
 
+@hug.get("/search/ip", output=hug.output_format.json, examples="v=8.8.8.8", version=1)
+def search_get(v: hug.types.text):
+    """Search for an IP object in all available feeds. Input: HTTP GET with parameter containing a single IP address"""
+
+    if General.validate_request(v):
+        payload = [v]
+
+    else:
+        return {"errors": "Data validation error in '%s'" % v}
+
+    return FeedsAlchemy.db_search(payload)
+
+
 @hug.get("/feeds", output=hug.output_format.json, version=1)
 def feeds():
     """Retrieve all information about feeds"""
