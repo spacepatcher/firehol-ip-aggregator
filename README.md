@@ -22,6 +22,7 @@ By default, the HTTP-based API service is available by port 8000.
 There are several API-functions for obtaining various information about feeds:
 
 * POST `/search` - retrieve all information about requested IP or CIDR format objects
+* GET `/search/ip` - retrieve all information about single requested IP or CIDR format object
 * GET `/feeds` - retrieve all information about feeds
 * GET `/feed/info` - retrieve all available information about the feed by its name
 * GET `/feeds/categories` - retrieve all feed categories
@@ -115,8 +116,13 @@ If the observable is not found in the application database, the response will lo
 ```
 
 Also you can generate search requests using cURL:
+* For HTTP POST search API function:
 ```
 curl -X POST --data '8.8.8.8,1.1.1.1' -H 'Content-Type: text/html' localhost:8000/search
+```
+* For HTTP GET search API function:
+```
+curl -X GET -H 'Content-Type: text/html' localhost:8000/search/ip?v=8.8.8.8
 ```
 
 ### Important files
