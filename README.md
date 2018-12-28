@@ -122,7 +122,7 @@ curl -X POST --data '8.8.8.8,1.1.1.1' -H 'Content-Type: text/html' localhost:800
 ```
 * For HTTP GET search API function:
 ```
-curl -X GET -H 'Content-Type: text/html' localhost:8000/search/ip?v=8.8.8.8
+curl -X GET localhost:8000/search/ip?v=8.8.8.8
 ```
 
 ### Important files
