@@ -7,7 +7,7 @@ import requests
 from multiprocessing import Pool
 from subprocess import run, CalledProcessError
 
-from modules.db_feeds import FeedsAlchemy
+from modules.db_sync import FeedsAlchemy
 from modules.general import General
 
 

@@ -1,6 +1,6 @@
 import hug
 
-from modules.db_feeds import FeedsAlchemy
+from modules.db_sync import FeedsAlchemy
 from modules.general import General
 
 

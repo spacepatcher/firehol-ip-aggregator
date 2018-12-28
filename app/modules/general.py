@@ -30,7 +30,7 @@ class General:
         self.unique_ips_limit = self.config.get("unique_ips_limit")
 
         # FireHOL repo path
-        self.repo_path = "%s/%s" % (os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "git-data/firehol")
+        self.repo_path = "%s/%s" % (os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "git/firehol")
 
         # Logger configuration
         self.log_path = "%s/%s" % (os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "log/run.log")

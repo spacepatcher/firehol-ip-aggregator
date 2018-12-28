@@ -1,2 +1,1 @@
-docker-persistence/app-data
-docker-persistence/postgres
+docker-persistent/

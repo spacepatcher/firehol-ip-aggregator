@@ -8,18 +8,32 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=8neEmdvl
     volumes:
-      - ./docker-persistence/postgres:/var/lib/postgresql/data
-      - ./conf/postgresql.conf:/etc/postgresql.conf
+      - ./docker-persistent/postgres/data:/var/lib/postgresql/data
+      - ./docker-persistent/conf/postgresql.conf:/etc/postgresql.conf:ro
     command: postgres -c config_file=/etc/postgresql.conf
 
-  app:
-    build: .
+  sync:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.sync
     restart: always
-    ports:
-      - 8000:8000
     volumes:
-      - ./docker-persistence/app-data/git-data:/app/git-data
-      - ./docker-persistence/app-data/log:/app/log
-      - ./conf/app.conf:/app/conf/app.conf
+      - ./docker-persistent/app/git:/app/git
+      - ./docker-persistent/app/log:/app/log
+      - ./docker-persistent/conf/app.conf:/app/conf/app.conf:ro
     depends_on:
       - postgres
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.api
+    restart: always
+    ports:
+    - 8000:8000
+    volumes:
+      - ./docker-persistent/app/git:/app/git
+      - ./docker-persistent/app/log:/app/log
+      - ./docker-persistent/conf/app.conf:/app/conf/app.conf:ro
+    depends_on:
+      - sync

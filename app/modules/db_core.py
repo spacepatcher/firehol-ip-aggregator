@@ -1,7 +1,7 @@
 from time import sleep
 from sys import exit
 
-from sqlalchemy import MetaData, Table, Column, DateTime, ForeignKey, Sequence, Integer
+from sqlalchemy import MetaData, Table, Column, DateTime, ForeignKey, Integer
 from sqlalchemy import create_engine, exc
 from sqlalchemy_utils import database_exists, create_database
 from sqlalchemy.pool import NullPool
