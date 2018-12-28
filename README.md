@@ -1,21 +1,21 @@
 # Aggregator of FireHOL IP lists
 
-Аpplication for keeping feeds from <a href="https://github.com/firehol/blocklist-ipsets" target="_blank">blocklist-ipsets</a> (only *.netset and *.ipset files are aggregated) in PostgreSQL with including historical changes. For requests developed HTTP-based API service. 
+Application for keeping feeds from <a href="https://github.com/firehol/blocklist-ipsets" target="_blank">blocklist-ipsets</a> (only *.netset and *.ipset files are aggregated) with including historical changes. HTTP-based API service for search requests developed.
 
 Some features of keeping and processing data:
-* New data is written to existing data with `last_added` field update.
-* Data deleted from reputation feed is not deleted from the application database. For such data, `last_removed` field is updated.
-* Field `timeline` is based on events of adding and removing item from reputation list.
+* New data is written to existing data with `last_added` field update
+* Data deleted from reputation feed is not deleted from the application database
+* Field `timeline` is based on events of adding and removing item from reputation list
 
 ### Start application
 
 To start the collection module and the HTTP-based API service, just type:
 ```
-sudo docker-compose up -d
+docker-compose up
 ```
-The collection module will start automatically.
+The collection module will start in container `sync`.
 
-By default, the HTTP-based API service is available by port 8000.
+By default, the HTTP-based API service running in container `api` and is available on port 8000.
 
 ### API
 
@@ -24,18 +24,18 @@ There are several API-functions for obtaining various information about feeds:
 * POST `/search` - retrieve all information about requested IP or CIDR format objects
 * GET `/search/ip` - retrieve all information about single requested IP or CIDR format object
 * GET `/feeds` - retrieve all information about feeds
-* GET `/feed/info` - retrieve all available information about the feed by its name
+* GET `/feed/info` - retrieve all available information about the feed by his name
 * GET `/feeds/categories` - retrieve all feed categories
 * GET `/feeds/maintainers` - retrieve all feed maintainers
-* GET `/maintainer/info` - retrieve all available information about the maintainer by its name
+* GET `/maintainer/info` - retrieve all available information about the maintainer by his name
 * GET `/maintainers/by_category` - retrieve all maintainers by category
 * GET `/ip/bulk/by_category` - retrieve all IP addresses that are in feeds filtered by feed category
 
-The API documentation is accessed by requesting any undefined URL.
+Access to the API documentation can be obtained by requesting any unspecified URL.
 
 ### Example usage
 
-A simple python3 package `fiaclient` in designed as a client for FireHOL-IP-Aggregator API.
+A simple python3 package `fiaclient` is designed as a client for FireHOL-IP-Aggregator API.
 
 Install the package with pip:
 ```
@@ -53,6 +53,16 @@ To get information about `fiaclient` package visit https://github.com/spacepatch
 The application is able to get search requests in IP or CIDR format, also in mixed list of both data types. To search, run the command in python3 console:
 ```
 result = client.search(payload=["149.255.60.136"])
+```
+
+Also you can generate search requests using cURL:
+* For HTTP POST search API function:
+```
+curl -X POST --data '8.8.8.8,1.1.1.1' -H 'Content-Type: text/html' localhost:8000/search
+```
+* For HTTP GET search API function:
+```
+curl -X GET localhost:8000/search/ip?v=8.8.8.8
 ```
 
 Here is an example of the result of the requested payload:
@@ -115,26 +125,15 @@ If the observable is not found in the application database, the response will lo
 }
 ```
 
-Also you can generate search requests using cURL:
-* For HTTP POST search API function:
-```
-curl -X POST --data '8.8.8.8,1.1.1.1' -H 'Content-Type: text/html' localhost:8000/search
-```
-* For HTTP GET search API function:
-```
-curl -X GET localhost:8000/search/ip?v=8.8.8.8
-```
-
 ### Important files
 
-* `conf/app.conf` - the main configuration file with several parameters.
-* `conf/postgresql.conf` - the main Postgres configuration file (generated with http://pgtune.leopard.in.ua/).
-* `app/entrypoint.sh` - the entry point for the application container.
-* `docker-persistence/app-data/log/run.log` - the main log file.
+* `docker-persistent/conf/app.conf` - the main application configuration file
+* `docker-persistent/conf/postgresql.conf` - the main Postgres configuration file (generated with http://pgtune.leopard.in.ua/)
+* `docker-persistent/app/log/run.log` - the main log file
 
 ### Application configuration
 
-The most important configuration parameters from `conf/app.conf` are listed in the table below.
+The most important configuration parameters from `docker-persistent/conf/app.conf` are listed in the table below.
 
 | Parameter | Description |
 | ------ | ------ |
@@ -142,15 +141,15 @@ The most important configuration parameters from `conf/app.conf` are listed in t
 | `"sync_period_h"` | Defines time period for syncing with FireHOL IP list repository |
 | `"firehol_ipsets_git"` | Defines FireHOL IP lists repository url |
 
-Also it's possible to change count of workers that process queries to API in `app/entrypoint.sh` by changing `--workers` argument value.
+Also it's possible to change count of workers that process queries to API in `docker/Dockerfile.api` by changing `--workers` argument value in `ENTRYPOINT`.
 ```
-gunicorn --bind=0.0.0.0:8000 --workers=4 --timeout 3600 api:__hug_wsgi__
+ENTRYPOINT ["gunicorn", "--bind=0.0.0.0:8000", "--workers=4", "--timeout", "3600", "api:__hug_wsgi__"]
 ```
 
-It's recommended to use 2 workers per 1 core (do not forget to change `max_connections` parameter in `conf/postgresql.conf`).
+It's recommended to use 2 workers per 1 core (do not forget to change `max_connections` parameter in `docker-persistent/conf/postgresql.conf`).
 
 To apply configuration changes you should rebuild containers:
 ```
-sudo docker-compose down
-sudo docker-compose up --build
+docker-compose down
+docker-compose up --build
 ```
