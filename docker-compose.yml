@@ -1,16 +1,14 @@
 version: "2.0"
 
 services:
-  postgres:
-    image: postgres:9.6.8-alpine
+  mongo:
+    image: mongo:latest
     restart: always
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=8neEmdvl
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: 8neEmdvl
     volumes:
-      - ./docker-persistent/postgres/data:/var/lib/postgresql/data
-      - ./docker-persistent/conf/postgresql.conf:/etc/postgresql.conf:ro
-    command: postgres -c config_file=/etc/postgresql.conf
+      - ./docker-persistent/mongo/data:/data/db
 
   sync:
     build:
@@ -22,7 +20,7 @@ services:
       - ./docker-persistent/app/log:/app/log
       - ./docker-persistent/conf/app.conf:/app/conf/app.conf:ro
     depends_on:
-      - postgres
+      - mongo
 
   api:
     build:

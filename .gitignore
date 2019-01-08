@@ -133,10 +133,10 @@ pyvenv.cfg
 pip-selfcheck.json
 venv_*
 
-# Docker persistence data
+# Docker persistent data
 docker-persistent/app/git/*
 docker-persistent/app/log/*
-docker-persistent/postgres/*
+docker-persistent/mongo/*
 
 # For empty folders
 !.keep
