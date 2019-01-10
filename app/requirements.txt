@@ -1,0 +1,8 @@
+gitpython
+gunicorn
+hug
+netaddr
+pymongo
+pytz
+requests
+unidiff
