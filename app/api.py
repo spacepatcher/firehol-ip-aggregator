@@ -1,10 +1,10 @@
 import hug
 
-from modules.db_sync import FeedsAlchemy
+from modules.db_sync import FeedsStorage
 from modules.general import General
 
 
-FeedsAlchemy = FeedsAlchemy()
+FeedsStorage = FeedsStorage()
 General = General()
 
 General.logger.info("API instance successfully started")
@@ -33,7 +33,7 @@ def search(body):
     else:
         return {"errors": "Got an unrecognized structure"}
 
-    return FeedsAlchemy.db_search(list(set(payload)))
+    return FeedsStorage.search(list(set(payload)))
 
 
 @hug.get("/search/ip", output=hug.output_format.json, examples="v=8.8.8.8", version=1)
@@ -46,61 +46,4 @@ def search_get(v: hug.types.text):
     else:
         return {"errors": "Data validation error in '%s'" % v}
 
-    return FeedsAlchemy.db_search(payload)
-
-
-@hug.get("/feeds", output=hug.output_format.json, version=1)
-def feeds():
-    """Retrieve all information about feeds"""
-
-    return FeedsAlchemy.db_feeds()
-
-
-@hug.get("/feeds/categories", output=hug.output_format.json, version=1)
-def feeds_categories():
-    """Retrieve all feed categories"""
-
-    return FeedsAlchemy.db_feeds_categories()
-
-
-@hug.get("/feeds/maintainers", output=hug.output_format.json, version=1)
-def feeds_maintainers():
-    """Retrieve all feed maintainers"""
-
-    return FeedsAlchemy.db_feeds_maintainers()
-
-
-@hug.get("/feed/info", output=hug.output_format.json, examples="feed_name=hphosts_psh", version=1)
-def feed_info(feed_name: hug.types.text):
-    """Retrieve all available information about the feed by its name"""
-
-    feed_name_lower = feed_name.lower()
-
-    return FeedsAlchemy.db_feed_info(feed_name_lower)
-
-
-@hug.get("/maintainer/info", output=hug.output_format.json, examples="maintainer=hpHosts", version=1)
-def maintainer_info(maintainer: hug.types.text):
-    """Retrieve all available information about the maintainer by its name"""
-
-    maintainer_lower = maintainer.lower()
-
-    return FeedsAlchemy.db_maintainer_info(maintainer_lower)
-
-
-@hug.get("/maintainers/by_category", output=hug.output_format.json, examples="category=spam", version=1)
-def maintainers_by_category(category: hug.types.text):
-    """Retrieve all maintainers by category"""
-
-    category = category.lower()
-
-    return FeedsAlchemy.db_maintainers_by_category(category)
-
-
-@hug.get("/ip/bulk/by_category", output=hug.output_format.json, examples="category=reputation", version=1)
-def ip_bulk_by_category(category: hug.types.text):
-    """Retrieve all IP addresses that are in feeds by feed category"""
-
-    category_lower = category.lower()
-
-    return FeedsAlchemy.db_ip_bulk_by_category(category_lower)
+    return FeedsStorage.search(payload)
